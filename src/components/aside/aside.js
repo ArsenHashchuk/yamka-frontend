@@ -1,5 +1,5 @@
 "use client";
-import { Search, Layers, Settings, User, Bell } from "lucide-react"; // Removed House, LogOut. Added Bell.
+import { Search, Layers, Settings, User, Bell } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { togglePanel } from "@/src/lib/features/ui/uiSlice";
 import NavItem from "./nav-item";

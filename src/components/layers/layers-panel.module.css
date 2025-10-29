@@ -8,12 +8,10 @@
   height: 90%;
   background-color: #1f2937;
   color: white;
-  /* padding: 1.5rem 1.5rem; */
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
 
   display: flex;
   flex-direction: column;
-  /* gap: 1.5rem; */
   border-radius: 1.25rem;
   overflow: hidden;
   font-family: var(--font-sans);
@@ -51,11 +49,10 @@
 
 .content {
   overflow-y: auto;
-  /* padding-right: 0.5rem; */
-  padding: 1.5rem; /* (ADD THIS) */
-  flex-grow: 1; /* (ADD THIS) */
-  display: flex; /* (ADD THIS) */
-  flex-direction: column; /* (ADD THIS) */
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .section {

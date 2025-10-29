@@ -28,7 +28,6 @@ export default function SearchPanel() {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Debounce the *active* query
   const debouncedQuery = useDebounce(
     activeInput === "from" ? fromQuery : toQuery,
     300
@@ -36,18 +35,16 @@ export default function SearchPanel() {
 
   const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_DIRECTIONS_API_KEY;
 
-  // --- Effects ---
   // Effect to fetch suggestions
   useEffect(() => {
-    // Check the debounced value here.
     if (
-      debouncedQuery.length < 1 || // <-- CHANGED from 3 to 1
+      debouncedQuery.length < 1 ||
       !activeInput ||
       debouncedQuery === "My Current Location"
     ) {
       setSuggestions([]);
-      setIsLoading(false); // Make sure to stop loading
-      return; // Don't fetch
+      setIsLoading(false);
+      return;
     }
 
     const fetchSuggestions = async () => {
@@ -69,7 +66,7 @@ export default function SearchPanel() {
     fetchSuggestions();
   }, [debouncedQuery, activeInput, MAPBOX_TOKEN]);
 
-  // --- Handlers ---
+  // Handlers
 
   const handleClose = () => {
     dispatch(setActivePanel(null));
@@ -110,7 +107,7 @@ export default function SearchPanel() {
         },
         (error) => {
           console.error("Error getting location:", error);
-          // Don't use alert, use a better notification system later
+          // potentially implement a better error handling
         }
       );
     }
@@ -118,7 +115,7 @@ export default function SearchPanel() {
 
   const handleGetRoute = async () => {
     if (!fromCoords || !toCoords) {
-      // Use a modal later instead of alert
+      // potentially implement a better handling
       console.log("Please select a valid 'From' and 'To' location.");
       return;
     }
@@ -160,7 +157,7 @@ export default function SearchPanel() {
       </div>
       <hr className={styles.divider} />
 
-      {/* 2. Main Content (Inputs + Suggestions) */}
+      {/* Main Content */}
       <div className={styles.content}>
         {/* A/B Input Block */}
         <div className={styles.routeInputGroup}>
@@ -194,8 +191,6 @@ export default function SearchPanel() {
               )}
             </div>
 
-            {/* Reverse Button was here */}
-
             <div className={styles.inputWrapper}>
               <input
                 type="text"
@@ -216,7 +211,6 @@ export default function SearchPanel() {
             </div>
           </div>
 
-          {/* (MOVED) Reverse Button */}
           <button
             className={styles.reverseButton}
             title="Reverse route"
@@ -253,7 +247,7 @@ export default function SearchPanel() {
                   onClick={() => handleSuggestionClick(item)}
                   className={styles.suggestionItem}
                 >
-                  {/* You can add an icon here later */}
+                  {/* Potentially add general location icon here */}
                   <span>{item.place_name}</span>
                 </li>
               ))}
@@ -262,7 +256,7 @@ export default function SearchPanel() {
         </div>
       </div>
 
-      {/* 3. Footer Button */}
+      {/* Footer Button */}
       <div className={styles.footer}>
         <button
           className={styles.getRouteButton}
