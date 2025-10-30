@@ -1,4 +1,4 @@
-.container {
+.helpSectionWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6,6 +6,7 @@
   min-height: 100vh;
   background-color: #111827;
   color: white;
+  overflow: hidden;
 }
 
 .card {
@@ -20,14 +21,11 @@
   margin-top: 1.5rem;
 }
 
-.title {
+.helpTitle {
   font-size: 1.875rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.text {
-  color: #f87171;
+  margin-bottom: 3rem;
+  padding-top: 0.2rem;
 }
 
 .button {

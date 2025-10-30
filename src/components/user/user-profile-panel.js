@@ -4,9 +4,12 @@ import { useDispatch } from "react-redux";
 import { setActivePanel } from "@/src/lib/features/ui/uiSlice";
 import styles from "../layers/layers-panel.module.css";
 import userStyles from "./user-profile-panel.module.css";
+import { useRouter } from "next/navigation";
 
 export default function UserProfilePanel() {
   const dispatch = useDispatch();
+
+  const router = useRouter();
 
   const handleClose = () => {
     dispatch(setActivePanel(null));
@@ -15,6 +18,11 @@ export default function UserProfilePanel() {
   const handleLogout = () => {
     // Potential logout logic
     console.log("User logged out");
+    handleClose();
+  };
+
+  const handleHelpClick = () => {
+    router.push("/help");
     handleClose();
   };
 
@@ -36,7 +44,7 @@ export default function UserProfilePanel() {
 
         <div className={styles.section}>
           <ul className={userStyles.menuList}>
-            <li className={userStyles.menuItem}>
+            <li className={userStyles.menuItem} onClick={handleHelpClick}>
               <HelpCircle size={18} />
               <span>Help & Feedback</span>
             </li>

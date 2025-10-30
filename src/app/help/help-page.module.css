@@ -1,0 +1,59 @@
+.helpPageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.helpCard {
+  padding: 1.25rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+}
+
+.helpCard:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.feedbackCard {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.feedbackCard:hover {
+  background-color: #2980b9;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.cardText {
+  font-size: 1.125rem;
+}
+
+.button {
+  margin-top: 1.5rem;
+  background: none;
+  border: none;
+  color: #3388ff;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 150ms ease;
+}
+
+.button:hover {
+  opacity: 0.8;
+}

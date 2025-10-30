@@ -1,0 +1,41 @@
+.articlesContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.articlesTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: #2c3e50;
+}
+
+.articleList {
+  list-style: none;
+  padding: 0;
+}
+
+.articleListItem {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.articleListItem:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.articleLink {
+  display: block;
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #34495e;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.articleLink:hover {
+  color: #3498db; /* Yamka primary color highlight */
+}

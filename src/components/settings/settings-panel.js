@@ -7,7 +7,6 @@ import {
   setUnits,
 } from "@/src/lib/features/ui/uiSlice";
 import styles from "../layers/layers-panel.module.css";
-import { current } from "@reduxjs/toolkit";
 
 export default function SettingsPanel() {
   const dispatch = useDispatch();
