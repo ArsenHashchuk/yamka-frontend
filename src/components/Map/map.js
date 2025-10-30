@@ -8,6 +8,8 @@ import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
 import styles from "./map.module.css";
 import { useSelector } from "react-redux";
 
+import { MAP_STYLES } from "./map-styles";
+
 const Map = ({ routeData, markerLocation, activePanel }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -18,14 +20,12 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
   const [zoom] = useState(14);
 
   const mapLanguage = useSelector((state) => state.ui.locale);
+  const mapStyle = useSelector((state) => state.ui.mapStyle);
 
   //////////////////////////////
   // Effect to initialize the map
   useEffect(() => {
     if (map.current) return;
-
-    const MAP_API_KEY = process.env.NEXT_PUBLIC_MAP_API_KEY;
-    const MAP_STYLE_CODE = process.env.NEXT_PUBLIC_MAP_STYLE_CODE;
 
     map.current = new L.Map(mapContainer.current, {
       center: L.latLng(center.lat, center.lng),
@@ -35,14 +35,15 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
     L.control.zoom({ position: "bottomright" }).addTo(map.current);
 
+    const initialStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
+
     const mtLayer = new MaptilerLayer({
-      apiKey: MAP_API_KEY,
-      style: `https://api.maptiler.com/maps/${MAP_STYLE_CODE}/style.json?key=${MAP_API_KEY}`,
+      style: initialStyleUrl,
       language: mapLanguage,
     }).addTo(map.current);
 
     mapLayer.current = mtLayer;
-  }, [center.lng, center.lat, zoom, mapLanguage]);
+  }, [center.lng, center.lat, zoom, mapLanguage, mapStyle]);
 
   ///////////////////////////////////
   // Effect to update map language
@@ -51,6 +52,15 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
     mapLayer.current.setLanguage(mapLanguage);
   }, [mapLanguage]);
+
+  /////////////////////////////////
+  // Effect to update map style
+  useEffect(() => {
+    if (!mapLayer.current) return;
+
+    const newStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
+    mapLayer.current.setStyle(newStyleUrl);
+  }, [mapStyle]);
 
   //////////////////////////////////
   // Effect for drawing the route

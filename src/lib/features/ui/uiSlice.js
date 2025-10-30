@@ -5,6 +5,7 @@ const initialState = {
   activePanel: null,
   markerLocation: null,
   route: null,
+  mapStyle: getFromLocalStorage("userMapStyle", "default"),
   locale: getFromLocalStorage("userLocale", "en"),
   units: getFromLocalStorage("userUnits", "metric"),
 };
@@ -38,6 +39,12 @@ export const uiSlice = createSlice({
         localStorage.setItem("userUnits", JSON.stringify(action.payload));
       }
     },
+    setMapStyle: (state, action) => {
+      state.mapStyle = action.payload;
+      if (typeof window !== undefined) {
+        localStorage.setItem("userMapStyle", JSON.stringify(action.payload));
+      }
+    },
   },
 });
 
@@ -48,6 +55,7 @@ export const {
   setRoute,
   setLocale,
   setUnits,
+  setMapStyle,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

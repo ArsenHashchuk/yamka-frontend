@@ -1,14 +1,20 @@
 "use client";
 import { X } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { setActivePanel } from "@/src/lib/features/ui/uiSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setActivePanel, setMapStyle } from "@/src/lib/features/ui/uiSlice";
 import styles from "./layers-panel.module.css";
 
 export default function LayersPanel() {
   const dispatch = useDispatch();
 
+  const currentStyle = useSelector((state) => state.ui.mapStyle);
+
   const handleClose = () => {
     dispatch(setActivePanel(null));
+  };
+
+  const handleStyleChange = (style) => {
+    dispatch(setMapStyle(style));
   };
 
   return (
@@ -25,9 +31,30 @@ export default function LayersPanel() {
         <div className={styles.section}>
           <h5>Map Style</h5>
           <div className={styles.buttonGroup}>
-            <button className={styles.btn}>Default</button>
-            <button className={styles.btn}>Satellite</button>
-            <button className={styles.btn}>Dark</button>
+            <button
+              className={`${styles.btn} ${
+                currentStyle === "default" ? styles.active : ""
+              }`}
+              onClick={() => handleStyleChange("default")}
+            >
+              Default
+            </button>
+            <button
+              className={`${styles.btn} ${
+                currentStyle === "satellite" ? styles.active : ""
+              }`}
+              onClick={() => handleStyleChange("satellite")}
+            >
+              Satellite
+            </button>
+            <button
+              className={`${styles.btn} ${
+                currentStyle === "dark" ? styles.active : ""
+              }`}
+              onClick={() => handleStyleChange("dark")}
+            >
+              Dark
+            </button>
           </div>
         </div>
 
