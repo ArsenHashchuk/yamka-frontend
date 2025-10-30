@@ -85,13 +85,22 @@
   background-color: #4b5563;
 }
 
+.btn.active {
+  background-color: #3388ff;
+  color: white;
+  font-weight: 600;
+}
+
 .toggle {
   display: block;
   margin-bottom: 0.5rem;
   cursor: pointer;
+  font-size: 0.95rem;
 }
+
 .toggle input {
   margin-right: 0.5rem;
+  accent-color: #3388ff;
 }
 
 .slider {

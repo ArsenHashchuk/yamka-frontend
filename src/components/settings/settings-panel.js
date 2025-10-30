@@ -1,14 +1,20 @@
 "use client";
 import { X } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { setActivePanel } from "@/src/lib/features/ui/uiSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setActivePanel, setLocale } from "@/src/lib/features/ui/uiSlice";
 import styles from "../layers/layers-panel.module.css";
 
 export default function SettingsPanel() {
   const dispatch = useDispatch();
 
+  const currentLocale = useSelector((state) => state.ui.locale);
+
   const handleClose = () => {
     dispatch(setActivePanel(null));
+  };
+
+  const handleLanguageChange = (newLocale) => {
+    dispatch(setLocale(newLocale));
   };
 
   return (
@@ -25,8 +31,22 @@ export default function SettingsPanel() {
         <div className={styles.section}>
           <h5>Language</h5>
           <div className={styles.buttonGroup}>
-            <button className={styles.btn}>English</button>
-            <button className={styles.btn}>Українська</button>
+            <button
+              className={`${styles.btn} ${
+                currentLocale === "en" ? styles.active : ""
+              }`}
+              onClick={() => handleLanguageChange("en")}
+            >
+              English
+            </button>
+            <button
+              className={`${styles.btn} ${
+                currentLocale === "uk" ? styles.active : ""
+              }`}
+              onClick={() => handleLanguageChange("uk")}
+            >
+              Українська
+            </button>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ const initialState = {
   activePanel: null,
   markerLocation: null,
   route: null,
+  locale: "en",
 };
 
 export const uiSlice = createSlice({
@@ -23,10 +24,18 @@ export const uiSlice = createSlice({
     setRoute: (state, action) => {
       state.route = action.payload;
     },
+    setLocale: (state, action) => {
+      state.locale = action.payload;
+    },
   },
 });
 
-export const { setActivePanel, togglePanel, setMarkerLocation, setRoute } =
-  uiSlice.actions;
+export const {
+  setActivePanel,
+  togglePanel,
+  setMarkerLocation,
+  setRoute,
+  setLocale,
+} = uiSlice.actions;
 
 export default uiSlice.reducer;
