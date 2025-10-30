@@ -27,7 +27,10 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     map.current = new L.Map(mapContainer.current, {
       center: L.latLng(center.lat, center.lng),
       zoom: zoom,
+      zoomControl: false,
     });
+
+    L.control.zoom({ position: "bottomright" }).addTo(map.current);
 
     const mtLayer = new MaptilerLayer({
       apiKey: MAP_API_KEY,

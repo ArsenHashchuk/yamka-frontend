@@ -1,8 +1,6 @@
 .sidebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1002;
+  position: relative;
+  z-index: 10;
 
   width: 3%;
   min-width: 3rem;

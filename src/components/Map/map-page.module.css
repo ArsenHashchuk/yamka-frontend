@@ -1,8 +1,17 @@
 .main {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+  position: relative;
+  flex-grow: 1;
+
+  height: 100;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #111827;
+  color: white;
+  padding: 1rem;
 }
