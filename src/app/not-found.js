@@ -19,7 +19,6 @@ export default function NotFoundPage() {
         width={48}
         height={48}
         alt={`${APP_NAME || "App"} logo`}
-        priority={true}
         onError={(e) => {
           e.currentTarget.style.display = "none";
         }}

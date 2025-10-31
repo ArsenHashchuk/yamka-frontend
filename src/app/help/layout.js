@@ -10,7 +10,6 @@ export default function HelpLayout({ children }) {
         width={48}
         height={48}
         alt={`${APP_NAME || "App"} logo`}
-        priority={true}
       />
       <div className={styles.card}>
         <h1 className={styles.helpTitle}>How can we help you?</h1>

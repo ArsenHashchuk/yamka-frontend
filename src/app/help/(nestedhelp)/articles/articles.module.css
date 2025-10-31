@@ -8,7 +8,8 @@
   font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 25px;
-  color: #2c3e50;
+  color: white;
+  text-align: center;
 }
 
 .articleList {
@@ -17,25 +18,39 @@
 }
 
 .articleListItem {
-  border: 1px solid #eee;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  transition: box-shadow 0.2s;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  transition: all 0.2s ease-in-out;
+  background-color: #2c3e50;
 }
 
 .articleListItem:hover {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
 .articleLink {
   display: block;
-  padding: 15px 20px;
   text-decoration: none;
-  color: #34495e;
+  color: white;
   font-size: 1.05rem;
   font-weight: 500;
+  padding: 0;
 }
 
-.articleLink:hover {
-  color: #3498db; /* Yamka primary color highlight */
+.linkContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+}
+
+.arrowIcon {
+  color: #3498db;
+  transition: transform 0.2s;
+}
+
+.articleListItem:hover .arrowIcon {
+  transform: translateX(4px);
 }

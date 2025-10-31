@@ -1,15 +1,19 @@
 import Link from "next/link";
 import styles from "./articles.module.css";
+import { ArrowRight } from "lucide-react";
 
 const articleData = [
   { title: "Getting Started with Yamka", slug: "getting-started" },
-  { title: "How to Save a Route Offline", slug: "save-route-offline" },
-  { title: "Managing Your Custom Layers", slug: "managing-custom-layers" },
+  { title: "Changing Layers", slug: "changing-layers" },
   {
     title: "Troubleshooting GPS Accuracy Issues",
     slug: "gps-accuracy-troubleshooting",
   },
 ];
+
+export const metadata = {
+  title: "Articles",
+};
 
 export default function ArticlesIndexPage() {
   return (
@@ -23,7 +27,10 @@ export default function ArticlesIndexPage() {
               href={`/help/articles/${article.slug}`}
               className={styles.articleLink}
             >
-              {article.title}
+              <span className={styles.linkContent}>
+                {article.title}
+                <ArrowRight size={20} className={styles.arrowIcon} />
+              </span>
             </Link>
           </li>
         ))}

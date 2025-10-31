@@ -7,3 +7,10 @@ export const getFromLocalStorage = (key, defaultValue) => {
   }
   return defaultValue;
 };
+
+export const formatTitle = (slug) => {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
