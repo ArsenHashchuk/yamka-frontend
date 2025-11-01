@@ -20,6 +20,7 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
   const mapLanguage = useSelector((state) => state.ui.locale);
   const mapStyle = useSelector((state) => state.ui.mapStyle);
+  const showTraffic = useSelector((state) => state.ui.showTraffic);
 
   // Effect to initialize the map
   useEffect(() => {
@@ -80,6 +81,7 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     }
   }, [routeData]);
 
+  // Effect for drawing the marker
   useEffect(() => {
     if (!map.current) return;
     if (markerLayer.current) {
@@ -91,6 +93,41 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
       markerLayer.current = newMarker;
     }
   }, [markerLocation]);
+
+  // Effect for live-traffic
+  useEffect(() => {
+    if (!mapLayer.current) return;
+
+    const setTrafficVisibility = (visible) => {
+      const maplibreMap = mapLayer.current.map;
+
+      if (!maplibreMap) {
+        return;
+      }
+
+      if (!maplibreMap.isStyleLoaded()) {
+        maplibreMap.once("load", () => setTrafficVisibility(visible));
+        return;
+      }
+
+      const style = maplibreMap.getStyle();
+      if (!style || !style.layers) return;
+
+      const trafficLayers = style.layers.filter((layer) =>
+        layer.id.includes("traffic")
+      );
+
+      trafficLayers.forEach((layer) => {
+        maplibreMap.setLayoutProperty(
+          layer.id,
+          "visibility",
+          visible ? "visible" : "none"
+        );
+      });
+    };
+
+    setTrafficVisibility(showTraffic);
+  }, [showTraffic, mapStyle]);
 
   return (
     <div className={styles.mapWrap}>

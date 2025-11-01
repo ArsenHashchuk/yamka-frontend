@@ -1,13 +1,18 @@
 "use client";
 import { X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { setActivePanel, setMapStyle } from "@/src/lib/features/ui/uiSlice";
+import {
+  setActivePanel,
+  setMapStyle,
+  setShowTraffic,
+} from "@/src/lib/features/ui/uiSlice";
 import styles from "./layers-panel.module.css";
 
 export default function LayersPanel() {
   const dispatch = useDispatch();
 
   const currentStyle = useSelector((state) => state.ui.mapStyle);
+  const showTraffic = useSelector((state) => state.ui.showTraffic);
 
   const handleClose = () => {
     dispatch(setActivePanel(null));
@@ -64,7 +69,12 @@ export default function LayersPanel() {
             <input type="checkbox" defaultChecked /> Show Potholes
           </label>
           <label className={styles.toggle}>
-            <input type="checkbox" defaultChecked /> Show Live Traffic
+            <input
+              type="checkbox"
+              checked={showTraffic}
+              onChange={(e) => dispatch(setShowTraffic(e.target.checked))}
+            />{" "}
+            Show Live Traffic
           </label>
         </div>
 

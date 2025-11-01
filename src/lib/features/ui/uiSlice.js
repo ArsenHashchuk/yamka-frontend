@@ -8,6 +8,7 @@ const initialState = {
   mapStyle: getFromLocalStorage("userMapStyle", "default"),
   locale: getFromLocalStorage("userLocale", "en"),
   units: getFromLocalStorage("userUnits", "metric"),
+  showTraffic: true,
 };
 
 export const uiSlice = createSlice({
@@ -45,6 +46,9 @@ export const uiSlice = createSlice({
         localStorage.setItem("userMapStyle", JSON.stringify(action.payload));
       }
     },
+    setShowTraffic: (state, action) => {
+      state.showTraffic = action.payload;
+    },
   },
 });
 
@@ -56,6 +60,7 @@ export const {
   setLocale,
   setUnits,
   setMapStyle,
+  setShowTraffic,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
