@@ -6,7 +6,7 @@
 }
 
 .formTitle {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 15px;
   color: white;
@@ -25,7 +25,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 0 10px;
+  padding: 0;
 }
 
 .formGroup {
@@ -147,4 +147,10 @@
   text-align: center;
   font-size: 0.95rem;
   margin-bottom: 5px;
+}
+
+@media (min-width: 640px) {
+  .formTitle {
+    font-size: 1.8rem;
+  }
 }

@@ -6,6 +6,8 @@
   min-height: 100vh;
   background-color: #111827;
   color: white;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .card {
@@ -18,10 +20,11 @@
   text-align: center;
   background-color: #1f2937;
   margin-top: 1.5rem;
+  box-sizing: border-box;
 }
 
 .title {
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
@@ -45,4 +48,10 @@
 
 .button:hover {
   opacity: 0.8;
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 1.875rem;
+  }
 }

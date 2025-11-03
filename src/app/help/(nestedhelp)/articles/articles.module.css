@@ -1,7 +1,7 @@
 .articlesContainer {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 0;
 }
 
 .articlesTitle {
@@ -53,4 +53,10 @@
 
 .articleListItem:hover .arrowIcon {
   transform: translateX(4px);
+}
+
+@media (min-width: 640px) {
+  .articlesContainer {
+    padding: 20px 0;
+  }
 }
