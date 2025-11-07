@@ -46,7 +46,6 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
   const potholesLayer = useRef(null);
   const userPuckMarker = useRef(null);
   const watchId = useRef(null);
-  const hasCheckedOnLoad = useRef(false);
 
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -145,6 +144,16 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
       console.error("Geolocation is not supported by this browser.");
     }
 
+    // Check for resume navigation on init load
+    const appIsInNavigation =
+      JSON.parse(localStorage.getItem("isNavigating")) === true;
+    const appHasRoute = localStorage.getItem("currentRoute") !== null;
+
+    if (appIsInNavigation && appHasRoute) {
+      console.log("Page loaded into active navigation. Asking to resume.");
+      setShowResumeModal(true);
+    }
+
     return () => {
       if (watchId.current) {
         navigator.geolocation.clearWatch(watchId.current);
@@ -159,38 +168,6 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     dispatch,
     hasCenteredOnUser,
   ]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden === false && !showArrivalModal && !showResumeModal) {
-        const appIsInNavigation =
-          JSON.parse(localStorage.getItem("isNavigating")) === true;
-        const appHasRoute = localStorage.getItem("currentRoute") !== null;
-
-        if (appIsInNavigation && appHasRoute) {
-          if (!hasCheckedOnLoad.current) {
-            console.log(
-              "Page loaded into active navigation. Asking to resume."
-            );
-            setShowResumeModal(true);
-            hasCheckedOnLoad.current = true;
-          }
-        }
-      }
-
-      if (document.hidden === true) {
-        hasCheckedOnLoad.current = false;
-      }
-    };
-
-    handleVisibilityChange();
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [showArrivalModal, showResumeModal]);
 
   // Effect to update map language
   useEffect(() => {
