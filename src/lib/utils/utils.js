@@ -32,3 +32,40 @@ export const formatPlaceName = (hit) => {
 export const generateRandomKeySlug = () => {
   return Math.random() * 100;
 };
+
+export function getTurnIcon(sign) {
+  switch (sign) {
+    case -7:
+      return "↖️"; // Keep Left
+    case -6:
+      return "🔄"; // Left Roundabout
+    case -3:
+      return "↩️"; // Sharp Left
+    case -2:
+      return "⬅️"; // Turn Left
+    case 0:
+      return "⬆️"; // Continue
+    case 2:
+      return "➡️"; // Turn Right
+    case 3:
+      return "↪️"; // Sharp Right
+    case 4:
+      return "📍"; // Arrive
+    case 6:
+      return "🔄"; // Roundabout
+    case 7:
+      return "↗️"; // Keep Right
+    default:
+      return "⬆️";
+  }
+}
+
+export const formatDistance = (meters) => {
+  if (meters < 100) {
+    return `${Math.round(meters / 10) * 10} m`;
+  }
+  if (meters < 1000) {
+    return `${Math.round(meters / 50) * 50} m`;
+  }
+  return `${(meters / 1000).toFixed(1)} km`;
+};

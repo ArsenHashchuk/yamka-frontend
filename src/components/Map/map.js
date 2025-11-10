@@ -3,16 +3,16 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {
-  MaptilerLayer,
-  NavigationControl,
-} from "@maptiler/leaflet-maptilersdk";
+import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
+
+import "@maptiler/sdk/dist/maptiler-sdk.css";
 
 import styles from "./map.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { MAP_STYLES } from "./map-styles";
 import { useGetPotholesQuery } from "@/src/lib/features/api/apiSlice";
 import { getSeverityColor } from "@/src/lib/utils/utils";
+import { speak } from "@/src/lib/utils/speech";
 import getRoute from "@/src/lib/utils/getRoute";
 import {
   setIsNavigating,
@@ -20,6 +20,7 @@ import {
   setRoute,
   setIsReRouting,
   setDestinationCoords,
+  setCurrentInstructionIndex,
 } from "@/src/lib/features/ui/uiSlice";
 
 import ArrivalModal from "./arrival-modal";
@@ -36,16 +37,26 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [11, 11],
 });
 
-const Map = ({ routeData, markerLocation, activePanel }) => {
+const destinationIcon = L.divIcon({
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin" style="fill: #EF4444; stroke: #FFFFFF; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  className: styles.destinationIcon,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+const Map = ({ routeData }) => {
   const dispatch = useDispatch();
   const mapContainer = useRef(null);
   const map = useRef(null);
   const routeLayer = useRef(null);
-  const markerLayer = useRef(null);
   const mapLayer = useRef(null);
   const potholesLayer = useRef(null);
   const userPuckMarker = useRef(null);
   const watchId = useRef(null);
+  const destinationMarker = useRef(null);
+
+  const lastSpokenIndex = useRef(-1);
+  const arrivalSpoken = useRef(false);
 
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -63,6 +74,9 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
   const userLocation = useSelector((state) => state.ui.userLocation);
   const destinationCoords = useSelector((state) => state.ui.destinationCoords);
   const isReRouting = useSelector((state) => state.ui.isReRouting);
+  const currentInstructionIndex = useSelector(
+    (state) => state.ui.currentInstructionIndex
+  );
 
   const {
     data: potholes,
@@ -88,19 +102,8 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
     const maplibreMap = mtLayer.map;
     if (maplibreMap) {
-      maplibreMap.addControl(
-        new maplibregl.NavigationControl({
-          showZoom: false,
-          showCompass: true,
-          visualizePitch: true,
-        }),
-        "top-right"
-      );
-
-      // Enable rotation & pitch gestures
       maplibreMap.dragRotate.enable();
       maplibreMap.touchZoomRotate.enable();
-      maplibreMap.touchZoomRotate.enableRotation();
       maplibreMap.touchPitch.enable();
       maplibreMap.setMaxPitch(60);
     }
@@ -187,7 +190,17 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     if (!map.current) return;
     if (routeLayer.current) {
       map.current.removeLayer(routeLayer.current);
+      routeLayer.current = null;
     }
+
+    if (destinationMarker.current) {
+      map.current.removeLayer(destinationMarker.current);
+      destinationMarker.current = null;
+    }
+
+    lastSpokenIndex.current = -1;
+    arrivalSpoken.current = false;
+
     if (routeData && routeData.points) {
       const newRoute = L.geoJSON(routeData.points, {
         style: () => ({
@@ -210,6 +223,22 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
       }
 
       const hasSufficientDistance = distanceValueKm > 0.01;
+
+      try {
+        const coords = routeData.points.coordinates;
+        const destLngLat =
+          routeData.points.type === "LineString"
+            ? coords[coords.length - 1] // [lng, lat]
+            : coords; // [lng, lat]
+
+        destinationMarker.current = L.marker([destLngLat[1], destLngLat[0]], {
+          // [lat, lng]
+          icon: destinationIcon,
+        }).addTo(map.current);
+      } catch (e) {
+        console.error("Could not create destination marker:", e);
+      }
+
       // if user enter pointA and pointB as the same addresses, we just setView to that coords and GH returns a point
       if (!hasSufficientDistance) {
         map.current.setView(
@@ -224,23 +253,11 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
         map.current.fitBounds(newRoute.getBounds());
       }
     }
+
     if (!routeData) {
       setShowArrivalModal(false);
     }
-  }, [routeData, isNavigating, showResumeModal]);
-
-  // Effect for drawing the single-click marker
-  useEffect(() => {
-    if (!map.current) return;
-    if (markerLayer.current) {
-      map.current.removeLayer(markerLayer.current);
-    }
-    if (markerLocation) {
-      const newMarker = L.marker(markerLocation).addTo(map.current);
-      map.current.panTo(markerLocation);
-      markerLayer.current = newMarker;
-    }
-  }, [markerLocation]);
+  }, [routeData, isNavigating, showResumeModal, dispatch]);
 
   // Effect to toggle live traffic visibility
   useEffect(() => {
@@ -315,6 +332,9 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
     if (newRouteData) {
       dispatch(setRoute(newRouteData));
+      dispatch(setCurrentInstructionIndex(0));
+      lastSpokenIndex.current = -1;
+      arrivalSpoken.current = false;
     } else {
       console.error("Failed to fetch new route.");
     }
@@ -376,20 +396,61 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
 
           if (distanceToRoute > rerouteTolerance) {
             handleReroute();
-          } else {
-            const routeCoords = routeData.points.coordinates;
-            const destination = routeCoords[routeCoords.length - 1];
+            return;
+          }
 
-            const distanceToDest = distance(userPoint, destination, {
-              units: "meters",
-            });
+          // Voice logic
+          const instructions = routeData.instructions;
+          const nextInstruction = instructions[currentInstructionIndex];
 
-            console.log(`Distance to destination: ${distanceToDest} meters`);
+          if (nextInstruction) {
+            const userPoint = [userLocation.lng, userLocation.lat];
 
-            if (distanceToDest < 50 && !showArrivalModal) {
-              console.log("User has arrived at destination!");
-              setShowArrivalModal(true);
-              dispatch(setIsNavigating(false));
+            // Check for "Arrive" sign
+            if (nextInstruction.sign === 4) {
+              const routeCoords = routeData.points.coordinates;
+              const destination = routeCoords[routeCoords.length - 1];
+              const distanceToDest = distance(userPoint, destination, {
+                units: "meters",
+              });
+
+              if (
+                distanceToDest < 50 &&
+                !showArrivalModal &&
+                !arrivalSpoken.current
+              ) {
+                arrivalSpoken.current = true;
+                speak("You have arrived at your destination.", () => {
+                  setShowArrivalModal(true);
+                  dispatch(setIsNavigating(false));
+                  dispatch(setCurrentInstructionIndex(0));
+                });
+              }
+            } else if (
+              nextInstruction.points &&
+              nextInstruction.points.length > 0
+            ) {
+              const maneuverPoint = nextInstruction.points[0]; // [lng, lat]
+              const distanceToManeuver = distance(userPoint, maneuverPoint, {
+                units: "meters",
+              });
+
+              const speechTriggerDistance = 100;
+              const advanceInstructionDistance = 25;
+
+              if (
+                distanceToManeuver < speechTriggerDistance &&
+                lastSpokenIndex.current < currentInstructionIndex
+              ) {
+                lastSpokenIndex.current = currentInstructionIndex;
+                speak(nextInstruction.text);
+              }
+
+              if (distanceToManeuver < advanceInstructionDistance) {
+                dispatch(
+                  setCurrentInstructionIndex(currentInstructionIndex + 1)
+                );
+              }
             }
           }
         }
@@ -405,6 +466,7 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     isReRouting,
     handleReroute,
     showResumeModal,
+    currentInstructionIndex,
   ]);
 
   // Handler for the "Find My Location" button
@@ -421,6 +483,11 @@ const Map = ({ routeData, markerLocation, activePanel }) => {
     dispatch(setRoute(null));
     dispatch(setIsNavigating(false));
     dispatch(setDestinationCoords(null));
+    dispatch(setCurrentInstructionIndex(0));
+
+    // Reset speech flags
+    lastSpokenIndex.current = -1;
+    arrivalSpoken.current = false;
   };
 
   return (

@@ -1,0 +1,117 @@
+.container {
+  position: absolute;
+  bottom: 2.25rem;
+  left: 3.5rem;
+  right: 3rem;
+  width: 55%;
+
+  z-index: 1000;
+  font-family: var(--font-sans);
+
+  background-color: #1f2937;
+  color: white;
+  padding: 0.75rem 1rem;
+
+  border-radius: 1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+
+  cursor: pointer;
+  transition: background-color 0.2s, top 0.3s, left 0.3s, bottom 0.3s,
+    width 0.3s;
+}
+
+.container:hover {
+  background-color: #2c3e50;
+}
+
+.maneuver {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  text-align: left;
+  overflow: hidden;
+}
+
+.distance {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.street {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3388ff;
+  overflow: hidden;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .container {
+    top: 2%;
+    left: 4.75rem;
+    bottom: auto;
+    right: auto;
+    width: 400px;
+    padding: 1rem 1.5rem;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  .distance {
+    font-size: 1.75rem;
+  }
+
+  .street {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    left: 4.75rem;
+  }
+  .icon {
+    font-size: 3rem;
+  }
+
+  .distance {
+    font-size: 2rem;
+  }
+
+  .street {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 2400px) {
+  .container {
+    left: 6rem;
+  }
+  .icon {
+    font-size: 3rem;
+  }
+
+  .distance {
+    font-size: 2.25rem;
+  }
+
+  .street {
+    font-size: 1.5rem;
+  }
+}

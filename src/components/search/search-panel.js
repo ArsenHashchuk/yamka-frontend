@@ -17,9 +17,11 @@ import {
   setIsNavigating,
   setDestinationCoords,
   setIsReRouting,
+  setCurrentInstructionIndex,
 } from "@/src/lib/features/ui/uiSlice";
 
 import getRoute from "@/src/lib/utils/getRoute";
+import { speak, unlockSpeech } from "@/src/lib/utils/speech";
 
 import styles from "./search-panel.module.css";
 import useDebounce from "./useDebounce";
@@ -132,9 +134,9 @@ export default function SearchPanel() {
 
     if (routeData) {
       dispatch(setRoute(routeData));
-
       dispatch(setDestinationCoords(toCoords));
       dispatch(setIsReRouting(false));
+      dispatch(setCurrentInstructionIndex(0));
 
       if (fromQuery === "My Current Location") {
         dispatch(setIsNavigating(true));
@@ -146,6 +148,13 @@ export default function SearchPanel() {
     } else {
       console.log("Could not find a route.");
     }
+
+    if (routeData.instructions && routeData.instructions.length > 0) {
+      const firstInstruction = routeData.instructions[0];
+
+      speak(firstInstruction.text);
+    }
+
     setIsRouteLoading(false);
   };
 
@@ -165,7 +174,7 @@ export default function SearchPanel() {
     activeInput && suggestions.length > 0 && !isSuggestionsLoading;
   const showLoading = activeInput && isSuggestionsLoading;
 
-  const sameQuery = fromQuery === toQuery;
+  const sameQuery = fromQuery === toQuery && fromQuery !== "" && toQuery !== "";
 
   const buttonText =
     fromQuery === "My Current Location" ? "Start Navigation" : "Get Route";
@@ -267,7 +276,10 @@ export default function SearchPanel() {
       <div className={styles.footer}>
         <button
           className={styles.getRouteButton}
-          onClick={handleGetRoute}
+          onClick={(e) => {
+            unlockSpeech();
+            handleGetRoute();
+          }}
           disabled={!fromCoords || !toCoords || isRouteLoading || sameQuery}
         >
           {isRouteLoading ? "Loading..." : buttonText}

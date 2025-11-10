@@ -10,6 +10,11 @@
   height: 100%;
 }
 
+.destinationIcon {
+  background: transparent;
+  border: none;
+}
+
 .userPuckContainer {
   background: transparent;
   border: none;

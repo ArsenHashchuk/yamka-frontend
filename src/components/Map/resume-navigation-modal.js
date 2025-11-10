@@ -1,23 +1,39 @@
 import React from "react";
 import styles from "./arrival-modal.module.css";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   setRoute,
   setIsNavigating,
   setDestinationCoords,
+  setCurrentInstructionIndex,
 } from "@/src/lib/features/ui/uiSlice";
+
+import { speak, unlockSpeech } from "@/src/lib/utils/speech";
 
 export default function ResumeNavigationModal({ onClose }) {
   const dispatch = useDispatch();
+
+  const { route } = useSelector((state) => state.ui);
 
   const handleEndRoute = () => {
     dispatch(setRoute(null));
     dispatch(setIsNavigating(false));
     dispatch(setDestinationCoords(null));
+    dispatch(setCurrentInstructionIndex(0));
     onClose();
   };
 
   const handleContinue = () => {
+    console.log("Unlocking speech on resume...");
+    unlockSpeech();
+
+    const firstInstruction = route?.instructions?.[0];
+
+    if (firstInstruction) {
+      speak(firstInstruction.text);
+      dispatch(setCurrentInstructionIndex(1));
+    }
+
     onClose();
   };
 

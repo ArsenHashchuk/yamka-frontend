@@ -3,7 +3,6 @@ import { getFromLocalStorage } from "../../utils/utils.js";
 
 const initialState = {
   activePanel: null,
-  markerLocation: null,
   mapStyle: getFromLocalStorage("userMapStyle", "default"),
   locale: getFromLocalStorage("userLocale", "en"),
   units: getFromLocalStorage("userUnits", "metric"),
@@ -15,6 +14,7 @@ const initialState = {
   userLocation: null,
   destinationCoords: getFromLocalStorage("destinationCoords", null),
   isReRouting: false,
+  currentInstructionIndex: 0,
 };
 
 export const uiSlice = createSlice({
@@ -27,9 +27,6 @@ export const uiSlice = createSlice({
     togglePanel: (state, action) => {
       const panelName = action.payload;
       state.activePanel = state.activePanel === panelName ? null : panelName;
-    },
-    setMarkerLocation: (state, action) => {
-      state.markerLocation = action.payload;
     },
     setRoute: (state, action) => {
       state.route = action.payload;
@@ -87,13 +84,15 @@ export const uiSlice = createSlice({
     setIsReRouting: (state, action) => {
       state.isReRouting = action.payload;
     },
+    setCurrentInstructionIndex: (state, action) => {
+      state.currentInstructionIndex = action.payload;
+    },
   },
 });
 
 export const {
   setActivePanel,
   togglePanel,
-  setMarkerLocation,
   setRoute,
   setLocale,
   setUnits,
@@ -105,6 +104,7 @@ export const {
   setUserLocation,
   setDestinationCoords,
   setIsReRouting,
+  setCurrentInstructionIndex,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
