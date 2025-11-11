@@ -29,6 +29,7 @@ import { Locate, Minus, Plus, RouteOff } from "lucide-react";
 
 import { distance } from "@turf/distance";
 import pointToLineDistance from "@turf/point-to-line-distance";
+import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 const userLocationIcon = L.divIcon({
   html: `<div class="${styles.userPuckPulse}"></div><div class="${styles.userPuck}"></div>`,
@@ -92,6 +93,7 @@ const Map = ({ routeData }) => {
       zoom: zoom,
       zoomControl: false,
     });
+
     const initialStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
     const mtLayer = new MaptilerLayer({
       style: initialStyleUrl,
@@ -158,9 +160,7 @@ const Map = ({ routeData }) => {
     }
 
     return () => {
-      if (watchId.current) {
-        navigator.geolocation.clearWatch(watchId.current);
-      }
+      if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
     };
   }, [
     center.lng,
@@ -328,7 +328,7 @@ const Map = ({ routeData }) => {
       return;
     }
 
-    const newRouteData = await getRoute(fromCoords, toCoords);
+    const newRouteData = await getRoute(fromCoords, toCoords, mapLanguage);
 
     if (newRouteData) {
       dispatch(setRoute(newRouteData));
@@ -342,7 +342,7 @@ const Map = ({ routeData }) => {
     setTimeout(() => {
       dispatch(setIsReRouting(false));
     }, 3000);
-  }, [dispatch, userLocation, destinationCoords]);
+  }, [dispatch, userLocation, destinationCoords, mapLanguage]);
 
   // Effect to draw puck and handle navigation
   useEffect(() => {
@@ -405,6 +405,7 @@ const Map = ({ routeData }) => {
 
           if (nextInstruction) {
             const userPoint = [userLocation.lng, userLocation.lat];
+            const isFirstInstruction = currentInstructionIndex === 0;
 
             // Check for "Arrive" sign
             if (nextInstruction.sign === 4) {
@@ -420,11 +421,15 @@ const Map = ({ routeData }) => {
                 !arrivalSpoken.current
               ) {
                 arrivalSpoken.current = true;
-                speak("You have arrived at your destination.", () => {
-                  setShowArrivalModal(true);
-                  dispatch(setIsNavigating(false));
-                  dispatch(setCurrentInstructionIndex(0));
-                });
+                speak(
+                  "You have arrived at your destination.",
+                  mapLanguage,
+                  () => {
+                    setShowArrivalModal(true);
+                    dispatch(setIsNavigating(false));
+                    dispatch(setCurrentInstructionIndex(0));
+                  }
+                );
               }
             } else if (
               nextInstruction.points &&
@@ -437,13 +442,18 @@ const Map = ({ routeData }) => {
 
               const speechTriggerDistance = 100;
               const advanceInstructionDistance = 25;
+              const englishInstruction = translateInstruction(nextInstruction);
+
+              const shouldSpeak =
+                (isFirstInstruction && lastSpokenIndex.current < 0) ||
+                distanceToManeuver < speechTriggerDistance;
 
               if (
-                distanceToManeuver < speechTriggerDistance &&
+                shouldSpeak &&
                 lastSpokenIndex.current < currentInstructionIndex
               ) {
                 lastSpokenIndex.current = currentInstructionIndex;
-                speak(nextInstruction.text);
+                speak(englishInstruction, "en");
               }
 
               if (distanceToManeuver < advanceInstructionDistance) {
@@ -467,6 +477,7 @@ const Map = ({ routeData }) => {
     handleReroute,
     showResumeModal,
     currentInstructionIndex,
+    mapLanguage,
   ]);
 
   // Handler for the "Find My Location" button

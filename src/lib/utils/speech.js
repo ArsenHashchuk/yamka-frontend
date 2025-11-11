@@ -8,12 +8,11 @@ export const unlockSpeech = () => {
 
   const utter = new SpeechSynthesisUtterance("test");
   utter.volume = 0;
-  console.log(`---TESTING SPEECH IN UNLOCKSPEECH---`);
 
   synth.speak(utter);
 };
 
-export const speak = (text, onEndCallback = () => {}) => {
+export const speak = (text, locale = "en", onEndCallback = () => {}) => {
   if (typeof window === "undefined") {
     onEndCallback();
     return;
@@ -28,19 +27,38 @@ export const speak = (text, onEndCallback = () => {}) => {
 
   synth.cancel();
 
-  const voices = synth.getVoices();
-  if (voices.length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => {};
+  let voices = synth.getVoices();
+
+  if (!voices || voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      speak(text, locale, onEndCallback);
+    };
+    return;
   }
 
   const utter = new SpeechSynthesisUtterance(text);
 
-  if (voices.length > 0) {
-    utter.voice = voices[0];
+  const isUkrainian = /[А-Яа-яЇїІіЄєҐґ]/.test(text);
+  const targetLang = isUkrainian ? "uk" : "en";
+
+  let voice =
+    voices.find(
+      (v) => v.lang.toLowerCase().startsWith(targetLang) && v.localService
+    ) ||
+    voices.find((v) => v.lang.toLowerCase().startsWith(targetLang)) ||
+    null;
+
+  if (!voice) {
+    console.warn("No matching voice for:", targetLang, "Using fallback voice.");
+    voice = voices[0];
   }
 
+  utter.voice = voice;
+  utter.lang = voice.lang;
+
+  if (utter.lang !== voice.lang) utter.lang = voice.lang;
+
   utter.onend = () => {
-    console.log("Speech finished.");
     onEndCallback();
   };
 
@@ -49,10 +67,6 @@ export const speak = (text, onEndCallback = () => {}) => {
     onEndCallback();
   };
 
-  console.log(`---TESTING SPEECH IN SPEAK---`);
-  console.log(`Utter: ${utter}`);
-  console.log(`Synth: ${synth}`);
-  console.log(`---TESTING SPEECH IN SPEAK---`);
-
+  utter.volume = 0.5;
   synth.speak(utter);
 };

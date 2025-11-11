@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   const body = await request.json();
-  const { start, end } = body;
+  const { start, end, locale } = body;
 
   if (!start || !end) {
     return NextResponse.json(
@@ -28,6 +28,7 @@ export async function POST(request) {
     profile: "car",
     points_encoded: false,
     instructions: true,
+    locale: "en",
   };
 
   try {

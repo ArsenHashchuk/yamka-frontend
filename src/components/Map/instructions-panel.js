@@ -1,10 +1,11 @@
 "use client";
 
-import styles from "../layers/layers-panel.module.css";
+import styles from "./instructions-panel.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { X } from "lucide-react";
 import { setActivePanel } from "@/src/lib/features/ui/uiSlice";
 import { getTurnIcon } from "@/src/lib/utils/utils";
+import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 export default function InstructionsPanel() {
   const route = useSelector((state) => state.ui.route);
@@ -40,7 +41,7 @@ export default function InstructionsPanel() {
           return (
             <li key={index} className={styles.step}>
               <span className={styles.icon}>{getTurnIcon(step.sign)}</span>
-              <span className={styles.text}>{step.text}</span>
+              <span className={styles.text}>{translateInstruction(step)}</span>
             </li>
           );
         })}

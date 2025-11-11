@@ -10,7 +10,7 @@ import {
   Dot,
   Search,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setActivePanel,
   setRoute,
@@ -26,9 +26,11 @@ import { speak, unlockSpeech } from "@/src/lib/utils/speech";
 import styles from "./search-panel.module.css";
 import useDebounce from "./useDebounce";
 import { formatPlaceName } from "@/src/lib/utils/utils";
+import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 export default function SearchPanel() {
   const dispatch = useDispatch();
+  const mapLanguage = useSelector((state) => state.ui.locale);
 
   const [fromQuery, setFromQuery] = useState("");
   const [toQuery, setToQuery] = useState("");
@@ -130,7 +132,7 @@ export default function SearchPanel() {
     if (!fromCoords || !toCoords) return;
 
     setIsRouteLoading(true);
-    const routeData = await getRoute(fromCoords, toCoords);
+    const routeData = await getRoute(fromCoords, toCoords, mapLanguage);
 
     if (routeData) {
       dispatch(setRoute(routeData));
@@ -150,9 +152,9 @@ export default function SearchPanel() {
     }
 
     if (routeData.instructions && routeData.instructions.length > 0) {
-      const firstInstruction = routeData.instructions[0];
+      const firstInstruction = translateInstruction(routeData.instructions[0]);
 
-      speak(firstInstruction.text);
+      speak(firstInstruction);
     }
 
     setIsRouteLoading(false);

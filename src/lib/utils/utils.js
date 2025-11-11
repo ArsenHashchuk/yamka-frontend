@@ -29,10 +29,6 @@ export const formatPlaceName = (hit) => {
     .join(", ");
 };
 
-export const generateRandomKeySlug = () => {
-  return Math.random() * 100;
-};
-
 export function getTurnIcon(sign) {
   switch (sign) {
     case -7:
@@ -69,3 +65,86 @@ export const formatDistance = (meters) => {
   }
   return `${(meters / 1000).toFixed(1)} km`;
 };
+
+export function transliterate(str) {
+  if (typeof str !== "string") {
+    return "";
+  }
+
+  const map = {
+    А: "A",
+    а: "a",
+    Б: "B",
+    б: "b",
+    В: "V",
+    в: "v",
+    Г: "H",
+    г: "h",
+    Ґ: "G",
+    ґ: "g",
+    Д: "D",
+    д: "d",
+    Е: "E",
+    е: "e",
+    Є: "Ye",
+    є: "ye",
+    Ж: "Zh",
+    ж: "zh",
+    З: "Z",
+    з: "z",
+    И: "Y",
+    и: "y",
+    І: "I",
+    і: "i",
+    Ї: "Yi",
+    ї: "yi",
+    Й: "Y",
+    й: "y",
+    К: "K",
+    к: "k",
+    Л: "L",
+    л: "l",
+    М: "M",
+    м: "m",
+    Н: "N",
+    н: "n",
+    О: "O",
+    о: "o",
+    П: "P",
+    п: "p",
+    Р: "R",
+    р: "r",
+    С: "S",
+    с: "s",
+    Т: "T",
+    т: "t",
+    У: "U",
+    у: "u",
+    Ф: "F",
+    ф: "f",
+    Х: "Kh",
+    х: "kh",
+    Ц: "Ts",
+    ц: "ts",
+    Ч: "Ch",
+    ч: "ch",
+    Ш: "Sh",
+    ш: "sh",
+    Щ: "Shch",
+    щ: "shch",
+    Ю: "Yu",
+    ю: "yu",
+    Я: "Ya",
+    я: "ya",
+    Ь: "",
+    ь: "",
+    "'": "",
+    "’": "",
+    ʼ: "",
+  };
+
+  return str
+    .split("")
+    .map((c) => (map.hasOwnProperty(c) ? map[c] : c))
+    .join("");
+}

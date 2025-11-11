@@ -9,11 +9,15 @@ import {
 } from "@/src/lib/features/ui/uiSlice";
 
 import { speak, unlockSpeech } from "@/src/lib/utils/speech";
+import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 export default function ResumeNavigationModal({ onClose }) {
   const dispatch = useDispatch();
 
-  const { route } = useSelector((state) => state.ui);
+  const route = useSelector((state) => state.ui.route);
+  const currentInstructionIndex = useSelector(
+    (state) => state.ui.currentInstructionIndex
+  );
 
   const handleEndRoute = () => {
     dispatch(setRoute(null));
@@ -24,16 +28,11 @@ export default function ResumeNavigationModal({ onClose }) {
   };
 
   const handleContinue = () => {
-    console.log("Unlocking speech on resume...");
     unlockSpeech();
-
-    const firstInstruction = route?.instructions?.[0];
-
-    if (firstInstruction) {
-      speak(firstInstruction.text);
-      dispatch(setCurrentInstructionIndex(1));
-    }
-
+    speak(
+      translateInstruction(route.instructions[currentInstructionIndex]),
+      "en"
+    );
     onClose();
   };
 
