@@ -14,7 +14,7 @@ import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 export default function ResumeNavigationModal({ onClose }) {
   const dispatch = useDispatch();
 
-  const route = useSelector((state) => state.ui.route);
+  const { route, isMuted } = useSelector((state) => state.ui);
   const currentInstructionIndex = useSelector(
     (state) => state.ui.currentInstructionIndex
   );
@@ -28,9 +28,10 @@ export default function ResumeNavigationModal({ onClose }) {
   };
 
   const handleContinue = () => {
-    unlockSpeech();
+    unlockSpeech(isMuted);
     speak(
       translateInstruction(route.instructions[currentInstructionIndex]),
+      isMuted,
       "en"
     );
     onClose();

@@ -31,6 +31,7 @@ import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 export default function SearchPanel() {
   const dispatch = useDispatch();
   const mapLanguage = useSelector((state) => state.ui.locale);
+  const { isMuted } = useSelector((state) => state.ui);
 
   const [fromQuery, setFromQuery] = useState("");
   const [toQuery, setToQuery] = useState("");
@@ -154,7 +155,7 @@ export default function SearchPanel() {
     if (routeData.instructions && routeData.instructions.length > 0) {
       const firstInstruction = translateInstruction(routeData.instructions[0]);
 
-      speak(firstInstruction);
+      speak(firstInstruction, isMuted);
     }
 
     setIsRouteLoading(false);
@@ -279,7 +280,7 @@ export default function SearchPanel() {
         <button
           className={styles.getRouteButton}
           onClick={(e) => {
-            unlockSpeech();
+            unlockSpeech(isMuted);
             handleGetRoute();
           }}
           disabled={!fromCoords || !toCoords || isRouteLoading || sameQuery}

@@ -8,6 +8,7 @@ import UserProfilePanelWrapper from "@/src/components/user/user-profile-panel-wr
 import NotificationsPanelWrapper from "@/src/components/notifications/notifications-panel-wrapper";
 import InstructionsPanelWrapper from "../components/Map/instructions-wrapper";
 import CurrentManeuver from "../components/Map/current-maneuver";
+import ArrivalInfo from "../components/Map/arrival-info";
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
       <NotificationsPanelWrapper />
       <InstructionsPanelWrapper />
       <CurrentManeuver />
+      <ArrivalInfo />
 
       <MapPage />
     </div>

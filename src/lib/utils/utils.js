@@ -56,16 +56,6 @@ export function getTurnIcon(sign) {
   }
 }
 
-export const formatDistance = (meters) => {
-  if (meters < 100) {
-    return `${Math.round(meters / 10) * 10} m`;
-  }
-  if (meters < 1000) {
-    return `${Math.round(meters / 50) * 50} m`;
-  }
-  return `${(meters / 1000).toFixed(1)} km`;
-};
-
 export function transliterate(str) {
   if (typeof str !== "string") {
     return "";
@@ -147,4 +137,40 @@ export function transliterate(str) {
     .split("")
     .map((c) => (map.hasOwnProperty(c) ? map[c] : c))
     .join("");
+}
+
+export function formatTripDuration(totalMinutes) {
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const paddedMinutes = String(minutes).padStart(2, "0");
+
+  return `${hours}:${paddedMinutes} h`;
+}
+
+export function formatTripDistance(distanceInMeters, units) {
+  if (units === "metric") {
+    const km = (distanceInMeters / 1000).toFixed(1);
+    return `${km} km`;
+  } else {
+    const miles = (distanceInMeters / 1609.34).toFixed(1);
+    return `${miles} miles`;
+  }
+}
+
+export function calculateETA(durationInMinutes) {
+  const now = new Date();
+
+  const durationInMilliseconds = durationInMinutes * 60 * 1000;
+
+  const etaDate = new Date(now.getTime() + durationInMilliseconds);
+
+  const hours = etaDate.getHours().toString().padStart(2, "0");
+  const minutes = etaDate.getMinutes().toString().padStart(2, "0");
+
+  return `${hours}:${minutes}`;
 }

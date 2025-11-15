@@ -4,11 +4,15 @@ import styles from "./instructions-panel.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { X } from "lucide-react";
 import { setActivePanel } from "@/src/lib/features/ui/uiSlice";
-import { getTurnIcon } from "@/src/lib/utils/utils";
+import {
+  formatTripDistance,
+  formatTripDuration,
+  getTurnIcon,
+} from "@/src/lib/utils/utils";
 import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 export default function InstructionsPanel() {
-  const route = useSelector((state) => state.ui.route);
+  const { route, units } = useSelector((state) => state.ui);
   const dispatch = useDispatch();
 
   const handleClose = () => {
@@ -19,8 +23,7 @@ export default function InstructionsPanel() {
     return null;
   }
 
-  const tripDuration = Math.floor(route.time / 60000);
-  const tripDistance = (route.distance / 1000).toFixed(1);
+  const totalMinutes = Math.floor(route.time / 60000);
 
   return (
     <div className={styles.panel}>
@@ -33,8 +36,8 @@ export default function InstructionsPanel() {
       <hr className={styles.divider} />
 
       <div className={styles.summary}>
-        <strong>{tripDuration} min</strong>
-        <span> ({tripDistance} km)</span>
+        <strong>{formatTripDuration(totalMinutes)}</strong>
+        <span> ({formatTripDistance(route.distance, units)})</span>
       </div>
       <ol className={styles.list}>
         {route.instructions.map((step, index) => {

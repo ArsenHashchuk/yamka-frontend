@@ -6,6 +6,7 @@ const initialState = {
   mapStyle: getFromLocalStorage("userMapStyle", "default"),
   locale: getFromLocalStorage("userLocale", "en"),
   units: getFromLocalStorage("userUnits", "metric"),
+  isMuted: getFromLocalStorage("isMuted", false),
   showTraffic: true,
   showPotholes: true,
   potholeSeverityFilter: 1,
@@ -27,6 +28,10 @@ export const uiSlice = createSlice({
     togglePanel: (state, action) => {
       const panelName = action.payload;
       state.activePanel = state.activePanel === panelName ? null : panelName;
+    },
+    toggleMute: (state) => {
+      state.isMuted = !state.isMuted;
+      localStorage.setItem("isMuted", JSON.stringify(state.isMuted));
     },
     setRoute: (state, action) => {
       state.route = action.payload;
@@ -93,6 +98,7 @@ export const uiSlice = createSlice({
 export const {
   setActivePanel,
   togglePanel,
+  toggleMute,
   setRoute,
   setLocale,
   setUnits,

@@ -1,5 +1,5 @@
-export const unlockSpeech = () => {
-  if (typeof window === "undefined") return;
+export const unlockSpeech = (isMuted) => {
+  if (isMuted || typeof window === "undefined") return;
 
   const synth = window.speechSynthesis;
   if (!synth) return;
@@ -12,7 +12,17 @@ export const unlockSpeech = () => {
   synth.speak(utter);
 };
 
-export const speak = (text, locale = "en", onEndCallback = () => {}) => {
+export const speak = (
+  text,
+  isMuted = false,
+  locale = "en",
+  onEndCallback = () => {}
+) => {
+  if (isMuted) {
+    onEndCallback();
+    return;
+  }
+
   if (typeof window === "undefined") {
     onEndCallback();
     return;
@@ -31,7 +41,7 @@ export const speak = (text, locale = "en", onEndCallback = () => {}) => {
 
   if (!voices || voices.length === 0) {
     window.speechSynthesis.onvoiceschanged = () => {
-      speak(text, locale, onEndCallback);
+      speak(text, isMuted, locale, onEndCallback);
     };
     return;
   }
