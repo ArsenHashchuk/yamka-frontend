@@ -1,0 +1,39 @@
+.container {
+  position: absolute;
+  top: 2%;
+  left: 4rem;
+  right: 1rem;
+  width: auto;
+  z-index: 1000;
+  font-family: var(--font-sans);
+
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+
+  margin: 0;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 400px;
+    left: 4.5rem;
+    margin: auto;
+    right: auto;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    left: 4.75rem;
+  }
+}
+
+@media (min-width: 2400px) {
+  .container {
+    left: 6rem;
+  }
+}

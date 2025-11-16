@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styles from "./current-maneuver.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { getTurnIcon } from "@/src/lib/utils/utils";
@@ -9,28 +9,26 @@ import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
 export default function CurrentManeuver() {
   const dispatch = useDispatch();
-  const { route, isNavigating, currentInstructionIndex } = useSelector(
+  const { route, currentInstructionIndex, activePanel } = useSelector(
     (state) => state.ui
   );
 
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const instruction = route?.instructions?.[currentInstructionIndex];
+  const isInstructionsOpen = activePanel === "instructions";
 
   const toggleInstructionList = () => {
     dispatch(togglePanel("instructions"));
   };
 
-  if (!isClient || !isNavigating || !instruction) {
+  if (!instruction) {
     return null;
   }
 
   return (
-    <div className={styles.container} onClick={toggleInstructionList}>
+    <div
+      className={`${styles.container} ${isInstructionsOpen ? styles.open : ""}`}
+      onClick={toggleInstructionList}
+    >
       <div className={styles.maneuver}>
         <span className={styles.icon}>{getTurnIcon(instruction.sign)}</span>
         <div className={styles.details}>

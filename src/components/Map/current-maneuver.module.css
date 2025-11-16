@@ -1,26 +1,19 @@
 .container {
-  position: absolute;
-  top: 2%;
-  left: 2rem;
-  right: 1rem;
-  width: auto;
-  margin: 0;
-  transform: none;
-
-  z-index: 1000;
+  /* width: 100%; */
   font-family: var(--font-sans);
 
   background-color: #1f2937;
   color: white;
-  padding: 0.75rem 1rem;
-  margin: auto auto auto 2rem;
+  padding: 1rem 0.75rem;
 
   border-radius: 1rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 
   cursor: pointer;
-  transition: background-color 0.2s, top 0.3s, left 0.3s, bottom 0.3s,
-    width 0.3s;
+  transition: background-color 0.2s, border-radius 0.3s ease-out;
+}
+
+.container.open {
+  border-radius: 1rem 1rem 0 0;
 }
 
 .container:hover {
@@ -58,11 +51,7 @@
 
 @media (min-width: 768px) {
   .container {
-    width: 400px;
-    left: 4.5rem;
-    padding: 1rem 1.5rem;
-    margin: auto;
-    right: auto;
+    padding: 1rem;
   }
 
   .icon {
@@ -75,9 +64,6 @@
 }
 
 @media (min-width: 1920px) {
-  .container {
-    left: 4.75rem;
-  }
   .icon {
     font-size: 3rem;
   }
@@ -88,9 +74,6 @@
 }
 
 @media (min-width: 2400px) {
-  .container {
-    left: 6rem;
-  }
   .icon {
     font-size: 3rem;
   }

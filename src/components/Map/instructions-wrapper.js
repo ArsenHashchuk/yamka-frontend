@@ -5,9 +5,7 @@ import InstructionsPanel from "./instructions-panel";
 export default function InstructionsPanelWrapper() {
   const activePanel = useSelector((state) => state.ui.activePanel);
 
-  if (activePanel !== "instructions") {
-    return null;
-  }
+  const isVisible = activePanel === "instructions";
 
-  return <InstructionsPanel />;
+  return <InstructionsPanel isVisible={isVisible} />;
 }

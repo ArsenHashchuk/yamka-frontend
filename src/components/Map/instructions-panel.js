@@ -11,7 +11,7 @@ import {
 } from "@/src/lib/utils/utils";
 import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
-export default function InstructionsPanel() {
+export default function InstructionsPanel({ isVisible }) {
   const { route, units } = useSelector((state) => state.ui);
   const dispatch = useDispatch();
 
@@ -25,8 +25,10 @@ export default function InstructionsPanel() {
 
   const totalMinutes = Math.floor(route.time / 60000);
 
+  const panelClassName = `${styles.panel} ${isVisible ? styles.visible : ""}`;
+
   return (
-    <div className={styles.panel}>
+    <div className={panelClassName}>
       <div className={styles.header}>
         <h4>Your Route</h4>
         <button onClick={handleClose} className={styles.closeButton}>
@@ -34,7 +36,6 @@ export default function InstructionsPanel() {
         </button>
       </div>
       <hr className={styles.divider} />
-
       <div className={styles.summary}>
         <strong>{formatTripDuration(totalMinutes)}</strong>
         <span> ({formatTripDistance(route.distance, units)})</span>

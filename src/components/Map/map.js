@@ -102,6 +102,7 @@ const Map = ({ routeData }) => {
     mapLayer.current = mtLayer;
     potholesLayer.current = L.featureGroup().addTo(map.current);
 
+    // potentially removed or need to be fixed
     const maplibreMap = mtLayer.map;
     if (maplibreMap) {
       maplibreMap.dragRotate.enable();
@@ -214,6 +215,7 @@ const Map = ({ routeData }) => {
       const distanceValueKm = (routeData.distance / 1000).toFixed(1);
       const duration = Math.round(routeData.time / 60000);
 
+      // fix the styles or potentially remove
       newRoute.bindPopup(
         `<b>Route Info</b><br>Distance: ${distanceValueKm} km<br>Duration: ${duration} min`
       );
