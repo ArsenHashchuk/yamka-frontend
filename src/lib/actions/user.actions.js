@@ -1,83 +1,126 @@
-import { isRedirectError } from "next/dist/client/components/redirect-error";
+"use server";
 
-// Sign in the user with credentials
+import { auth, signIn, signOut } from "@/src/auth";
+import { prisma } from "@/src/lib/prisma";
+import bcrypt from "bcryptjs";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { redirect } from "next/navigation";
+
+// sign up
+export async function signUpUser(prevState, formData) {
+  try {
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
+
+    if (password !== confirmPassword) {
+      return { success: false, message: "Passwords do not match" };
+    }
+
+    const existingUser = await prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { success: false, message: "User already exists" };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.users.create({
+      data: {
+        username: name,
+        email,
+        password_hash: hashedPassword,
+        created_at: new Date(),
+      },
+    });
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    console.error("Sign up error:", error);
+    return { success: false, message: "Registration failed." };
+  }
+  redirect("/sign-in");
+}
+
+// sign in
 export async function signInWithCredentials(prevState, formData) {
   try {
-    // potentially added when backend is finished
-    // const user = signInFormSchema.parse({
-    //   email: formData.get("email"),
-    //   password: formData.get("password"),
-    // });
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-    const user = {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
-    console.log(`Signed in user with an email of: ${user.email}`);
-
-    // potentially added when backend is finished
-    // await signIn("credentials", user);
+    await signIn("credentials", {
+      email,
+      password: password,
+      redirect: false,
+    });
 
     return { success: true, message: "Signed in successfully" };
   } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
+    if (isRedirectError(error)) throw error;
+
+    if (error.type === "CredentialsSignin" || error.code === "credentials") {
+      return { success: false, message: "Invalid email or password" };
     }
 
-    return { success: false, message: "Invalid email or password" };
+    return { success: false, message: "Something went wrong." };
   }
 }
 
-// Sign user out
-export async function signOutUser() {
-  // potentially added
-  //   await signOut();
-  console.log("User was signed out");
-}
-
-// Sign up user
-export async function signUpUser(prevState, formData) {
+// delete account
+export async function deleteUserAccount() {
   try {
-    // potentially added
-    // const user = signUpFormSchema.parse({
-    //   name: formData.get("name"),
-    //   email: formData.get("email"),
-    //   password: formData.get("password"),
-    //   confirmPassword: formData.get("confirmPassword"),
-    // });
+    const session = await auth();
 
-    const user = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-      confirmPassword: formData.get("confirmPassword"),
-    };
-
-    console.log(`User was signed up successfully: ${JSON.stringify(user)}`);
-
-    // const plainPassword = user.password;
-
-    // user.password = hashSync(user.password, 10);
-
-    // await prisma.user.create({
-    //   data: {
-    //     name: user.name,
-    //     email: user.email,
-    //     password: user.password,
-    //   },
-    // });
-
-    // await signIn("credentials", {
-    //   email: user.email,
-    //   password: plainPassword,
-    // });
-
-    return { success: true, message: "User registered successfully" };
-  } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
+    if (!session || !session.user) {
+      return { success: false, message: "Not authenticated" };
     }
 
-    return { success: false, message: `Failed to sign up: ${error}` };
+    await prisma.users.delete({
+      where: {
+        id: parseInt(session.user.id),
+      },
+    });
+
+    return { success: true, message: "Account deleted successfully" };
+  } catch (error) {
+    console.error("Delete account error: ", error);
+    return { success: false, message: "Failed to delete account" };
+  }
+}
+
+// update the user profile
+export async function updateUserProfile(formData) {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const name = formData.get("name");
+    const password = formData.get("password");
+
+    const updateData = {
+      username: name,
+    };
+
+    if (password && password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password_hash = hashedPassword;
+    }
+
+    await prisma.users.update({
+      where: { id: parseInt(session.user.id) },
+      data: updateData,
+    });
+
+    return { success: true, message: "Profile updated successfully" };
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return { success: false, message: "Failed to update profile" };
   }
 }

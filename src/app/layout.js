@@ -1,6 +1,7 @@
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "../assets/styles/globals.css";
 import StoreProvider from "@/src/lib/storeProvider";
+import SessionProvider from "@/src/components/session-provider";
 
 import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from "@/src/lib/constants";
 
@@ -50,7 +51,9 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
-        <StoreProvider>{children}</StoreProvider>
+        <SessionProvider>
+          <StoreProvider>{children}</StoreProvider>
+        </SessionProvider>
       </body>
     </html>
   );

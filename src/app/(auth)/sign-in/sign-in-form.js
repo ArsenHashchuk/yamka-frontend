@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { useSearchParams } from "next/navigation";
 
@@ -18,6 +18,12 @@ export default function SignInForm() {
 
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  useEffect(() => {
+    if (data?.success) {
+      window.location.href = callbackUrl;
+    }
+  }, [data, callbackUrl]);
 
   const SignInButton = () => {
     const { pending } = useFormStatus();
