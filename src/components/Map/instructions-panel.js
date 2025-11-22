@@ -23,8 +23,6 @@ export default function InstructionsPanel({ isVisible }) {
     return null;
   }
 
-  const totalMinutes = Math.floor(route.time / 60000);
-
   const panelClassName = `${styles.panel} ${isVisible ? styles.visible : ""}`;
 
   return (
@@ -37,7 +35,7 @@ export default function InstructionsPanel({ isVisible }) {
       </div>
       <hr className={styles.divider} />
       <div className={styles.summary}>
-        <strong>{formatTripDuration(totalMinutes)}</strong>
+        <strong>{formatTripDuration(route.time)}</strong>
         <span> ({formatTripDistance(route.distance, units)})</span>
       </div>
       <ol className={styles.list}>

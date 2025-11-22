@@ -81,10 +81,10 @@ export default function ArrivalInfo() {
       return { duration: "...", distance: "..." };
     }
 
-    const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+    const remainingTimeInMs = remainingTimeInSeconds * 1000;
 
     return {
-      duration: formatTripDuration(remainingMinutes),
+      duration: formatTripDuration(remainingTimeInMs),
       distance: formatTripDistance(remainingDistanceInMeters, units),
     };
   }, [remainingTimeInSeconds, remainingDistanceInMeters, units]);

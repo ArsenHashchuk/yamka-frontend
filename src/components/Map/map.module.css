@@ -10,6 +10,34 @@
   height: 100%;
 }
 
+.popupContent {
+  font-family: var(--font-sans);
+  text-align: center;
+  min-width: 150px;
+}
+
+.popupTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+  display: block;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 4px;
+}
+
+.popupDetail {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.popupLabel {
+  font-weight: 600;
+}
+
 .destinationIcon {
   background: transparent;
   border: none;

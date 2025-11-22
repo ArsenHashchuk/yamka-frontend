@@ -11,7 +11,11 @@ import styles from "./map.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { MAP_STYLES } from "./map-styles";
 import { useGetPotholesQuery } from "@/src/lib/features/api/apiSlice";
-import { getSeverityColor } from "@/src/lib/utils/utils";
+import {
+  getSeverityColor,
+  formatTripDuration,
+  formatTripDistance,
+} from "@/src/lib/utils/utils";
 import { speak } from "@/src/lib/utils/speech";
 import getRoute from "@/src/lib/utils/getRoute";
 import {
@@ -75,6 +79,7 @@ const Map = ({ routeData }) => {
   const userLocation = useSelector((state) => state.ui.userLocation);
   const destinationCoords = useSelector((state) => state.ui.destinationCoords);
   const isReRouting = useSelector((state) => state.ui.isReRouting);
+  const units = useSelector((state) => state.ui.units);
   const currentInstructionIndex = useSelector(
     (state) => state.ui.currentInstructionIndex
   );
@@ -205,19 +210,34 @@ const Map = ({ routeData }) => {
       });
       newRoute.addTo(map.current);
       routeLayer.current = newRoute;
-      const distanceValueKm = (routeData.distance / 1000).toFixed(1);
-      const duration = Math.round(routeData.time / 60000);
 
-      // fix the styles or potentially remove
-      newRoute.bindPopup(
-        `<b>Route Info</b><br>Distance: ${distanceValueKm} km<br>Duration: ${duration} min`
-      );
+      const formattedDuration = formatTripDuration(routeData.time);
+      const formattedDistance = formatTripDistance(routeData.distance, units);
+
+      const popupContent = `
+        <div class="${styles.popupContent}">
+          <span class="${styles.popupTitle}">Route Details</span>
+          <div class="${styles.popupDetail}">
+            <span class="${styles.popupLabel}">Distance:</span>
+            <span>${formattedDistance}</span>
+          </div>
+          <div class="${styles.popupDetail}">
+            <span class="${styles.popupLabel}">Duration:</span>
+            <span>${formattedDuration}</span>
+          </div>
+        </div>
+      `;
+
+      newRoute.bindPopup(popupContent, {
+        className: styles.customPopupWrapper,
+        closeButton: false,
+      });
 
       if (!showResumeModal) {
         setShowArrivalModal(false);
       }
 
-      const hasSufficientDistance = distanceValueKm > 0.01;
+      const hasSufficientDistance = routeData.distance > 10;
 
       try {
         const coords = routeData.points.coordinates;
@@ -252,7 +272,7 @@ const Map = ({ routeData }) => {
     if (!routeData) {
       setShowArrivalModal(false);
     }
-  }, [routeData, isNavigating, showResumeModal, dispatch]);
+  }, [routeData, isNavigating, showResumeModal, dispatch, units]);
 
   // Effect to toggle live traffic visibility
   useEffect(() => {

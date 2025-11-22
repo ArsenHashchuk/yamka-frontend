@@ -139,7 +139,11 @@ export function transliterate(str) {
     .join("");
 }
 
-export function formatTripDuration(totalMinutes) {
+export function formatTripDuration(milliseconds) {
+  if (!milliseconds) return "0 min";
+
+  const totalMinutes = Math.round(milliseconds / 60000);
+
   if (totalMinutes < 60) {
     return `${totalMinutes} min`;
   }
@@ -153,6 +157,8 @@ export function formatTripDuration(totalMinutes) {
 }
 
 export function formatTripDistance(distanceInMeters, units) {
+  if (!distanceInMeters) return units === "metric" ? "0 km" : "0 miles";
+
   if (units === "metric") {
     const km = (distanceInMeters / 1000).toFixed(1);
     return `${km} km`;
@@ -162,15 +168,15 @@ export function formatTripDistance(distanceInMeters, units) {
   }
 }
 
-export function calculateETA(durationInMinutes) {
+export function calculateETA(minutesRemaining) {
   const now = new Date();
+  const arrivalTime = new Date(now.getTime() + minutesRemaining * 60000);
 
-  const durationInMilliseconds = durationInMinutes * 60 * 1000;
+  const hours = arrivalTime.getHours();
+  const minutes = arrivalTime.getMinutes();
 
-  const etaDate = new Date(now.getTime() + durationInMilliseconds);
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(minutes).padStart(2, "0");
 
-  const hours = etaDate.getHours().toString().padStart(2, "0");
-  const minutes = etaDate.getMinutes().toString().padStart(2, "0");
-
-  return `${hours}:${minutes}`;
+  return `${formattedHours}:${formattedMinutes}`;
 }
