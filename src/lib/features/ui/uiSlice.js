@@ -7,7 +7,6 @@ const initialState = {
   locale: getFromLocalStorage("userLocale", "en"),
   units: getFromLocalStorage("userUnits", "metric"),
   isMuted: getFromLocalStorage("isMuted", false),
-  showTraffic: true,
   showPotholes: true,
   potholeSeverityFilter: 1,
   route: getFromLocalStorage("currentRoute", null),
@@ -59,9 +58,6 @@ export const uiSlice = createSlice({
         localStorage.setItem("userMapStyle", JSON.stringify(action.payload));
       }
     },
-    setShowTraffic: (state, action) => {
-      state.showTraffic = action.payload;
-    },
     setShowPotholes: (state, action) => {
       state.showPotholes = action.payload;
     },
@@ -103,7 +99,6 @@ export const {
   setLocale,
   setUnits,
   setMapStyle,
-  setShowTraffic,
   setShowPotholes,
   setPotholeSeverityFilter,
   setIsNavigating,

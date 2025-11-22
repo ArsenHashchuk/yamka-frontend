@@ -72,7 +72,6 @@ const Map = ({ routeData }) => {
 
   const mapLanguage = useSelector((state) => state.ui.locale);
   const mapStyle = useSelector((state) => state.ui.mapStyle);
-  const showTraffic = useSelector((state) => state.ui.showTraffic);
   const showPotholes = useSelector((state) => state.ui.showPotholes);
   const severityFilter = useSelector((state) => state.ui.potholeSeverityFilter);
   const isNavigating = useSelector((state) => state.ui.isNavigating);
@@ -279,32 +278,6 @@ const Map = ({ routeData }) => {
       setShowArrivalModal(false);
     }
   }, [routeData, isNavigating, showResumeModal, dispatch, units]);
-
-  // Effect to toggle live traffic visibility
-  useEffect(() => {
-    if (!mapLayer.current) return;
-    const setTrafficVisibility = (visible) => {
-      const maplibreMap = mapLayer.current.map;
-      if (!maplibreMap) return;
-      if (!maplibreMap.isStyleLoaded()) {
-        maplibreMap.once("load", () => setTrafficVisibility(visible));
-        return;
-      }
-      const style = maplibreMap.getStyle();
-      if (!style || !style.layers) return;
-      const trafficLayers = style.layers.filter((layer) =>
-        layer.id.includes("traffic")
-      );
-      trafficLayers.forEach((layer) => {
-        maplibreMap.setLayoutProperty(
-          layer.id,
-          "visibility",
-          visible ? "visible" : "none"
-        );
-      });
-    };
-    setTrafficVisibility(showTraffic);
-  }, [showTraffic, mapStyle]);
 
   // Effect to draw/filter potholes
   useEffect(() => {

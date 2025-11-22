@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setActivePanel,
   setMapStyle,
-  setShowTraffic,
   setShowPotholes,
   setPotholeSeverityFilter,
 } from "@/src/lib/features/ui/uiSlice";
@@ -14,7 +13,6 @@ export default function LayersPanel() {
   const dispatch = useDispatch();
 
   const currentStyle = useSelector((state) => state.ui.mapStyle);
-  const showTraffic = useSelector((state) => state.ui.showTraffic);
   const showPotholes = useSelector((state) => state.ui.showPotholes);
   const severityFilter = useSelector((state) => state.ui.potholeSeverityFilter);
 
@@ -74,16 +72,8 @@ export default function LayersPanel() {
               type="checkbox"
               checked={showPotholes}
               onChange={(e) => dispatch(setShowPotholes(e.target.checked))}
-            />{" "}
+            />
             Show Potholes
-          </label>
-          <label className={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={showTraffic}
-              onChange={(e) => dispatch(setShowTraffic(e.target.checked))}
-            />{" "}
-            Show Live Traffic
           </label>
         </div>
 
