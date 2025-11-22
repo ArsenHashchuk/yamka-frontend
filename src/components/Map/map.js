@@ -88,6 +88,7 @@ const Map = ({ routeData }) => {
   // Effect to initialize the map and start location watching
   useEffect(() => {
     if (map.current) return;
+
     map.current = new L.Map(mapContainer.current, {
       center: L.latLng(center.lat, center.lng),
       zoom: zoom,
@@ -98,7 +99,7 @@ const Map = ({ routeData }) => {
     const mtLayer = new MaptilerLayer({
       style: initialStyleUrl,
       language: mapLanguage,
-      apiKey: process.env.NEXT_PUBLIC_MAPTILER_API_KEY,
+      apiKey: process.env.NEXT_PUBLIC_MAP_API_KEY,
     }).addTo(map.current);
     mapLayer.current = mtLayer;
     potholesLayer.current = L.featureGroup().addTo(map.current);
