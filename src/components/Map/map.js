@@ -94,10 +94,19 @@ const Map = ({ routeData }) => {
   useEffect(() => {
     if (map.current) return;
 
+    const worldBounds = [
+      [-85, -180],
+      [85, 180],
+    ];
+
     map.current = new L.Map(mapContainer.current, {
       center: L.latLng(center.lat, center.lng),
       zoom: zoom,
       zoomControl: false,
+
+      maxBounds: worldBounds,
+      maxBoundsViscosity: 0.3,
+      minZoom: 3,
     });
 
     const initialStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
@@ -110,12 +119,9 @@ const Map = ({ routeData }) => {
     potholesLayer.current = L.featureGroup().addTo(map.current);
 
     if ("geolocation" in navigator) {
-      console.log("Geolocation is available.");
-
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log("Got initial location:", latitude, longitude);
           const initialUserLoc = { lat: latitude, lng: longitude };
 
           dispatch(setUserLocation(initialUserLoc));
