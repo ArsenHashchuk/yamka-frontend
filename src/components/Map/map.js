@@ -15,6 +15,8 @@ import {
   getSeverityColor,
   formatTripDuration,
   formatTripDistance,
+  getSeverityLabel,
+  formatDate,
 } from "@/src/lib/utils/utils";
 import { speak } from "@/src/lib/utils/speech";
 import getRoute from "@/src/lib/utils/getRoute";
@@ -159,7 +161,6 @@ const Map = ({ routeData }) => {
     const appHasRoute = localStorage.getItem("currentRoute") !== null;
 
     if (appIsInNavigation && appHasRoute) {
-      console.log("Page loaded into active navigation. Asking to resume.");
       setShowResumeModal(true);
     }
 
@@ -234,7 +235,6 @@ const Map = ({ routeData }) => {
       `;
 
       newRoute.bindPopup(popupContent, {
-        className: styles.customPopupWrapper,
         closeButton: false,
       });
 
@@ -282,28 +282,58 @@ const Map = ({ routeData }) => {
   // Effect to draw/filter potholes
   useEffect(() => {
     if (!map.current || !potholesLayer.current || isLoadingPotholes) return;
+
     potholesLayer.current.clearLayers();
+
     if (potholeError) {
       console.error("Failed to load potholes:", potholeError);
       return;
     }
+
     if (showPotholes && potholes) {
       const filteredPotholes = potholes.filter(
         (pothole) => pothole.severity >= severityFilter
       );
+
       filteredPotholes.forEach((pothole) => {
         const [lng, lat] = pothole.coordinates;
+        const severityColor = getSeverityColor(pothole.severity);
+        const severityText = getSeverityLabel(pothole.severity);
+        const dateText = formatDate(pothole.reported_at);
+
+        const popupContent = `
+          <div class="${styles.potholePopup}">
+            <span class="${styles.potholeTitle}">Pothole Alert</span>
+            
+            <div class="${styles.potholeDetail}">
+              <strong>Status:</strong>
+              <span class="${styles.severityBadge}" style="background-color: ${severityColor}">
+                ${severityText}
+              </span>
+            </div>
+
+            <div class="${styles.potholeDetail}">
+              <strong>Detected:</strong>
+              <span>${dateText}</span>
+            </div>
+            
+            <div style="font-size: 10px; color: #9ca3af; margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 4px;">
+              ID: #${pothole.id}
+            </div>
+          </div>
+        `;
+
         L.circleMarker([lat, lng], {
           radius: 6,
-          fillColor: getSeverityColor(pothole.severity),
+          fillColor: severityColor,
           color: "#000",
           weight: 1,
           opacity: 1,
           fillOpacity: 0.8,
         })
-          .bindPopup(
-            `<b>Pothole (ID: ${pothole.id})</b><br>Severity: ${pothole.severity}`
-          )
+          .bindPopup(popupContent, {
+            closeButton: false,
+          })
           .addTo(potholesLayer.current);
       });
     }
@@ -311,7 +341,6 @@ const Map = ({ routeData }) => {
 
   const handleReroute = useCallback(async () => {
     dispatch(setIsReRouting(true));
-    console.log("User is off-route. Re-routing...");
 
     const fromCoords = [userLocation.lat, userLocation.lng];
     const toCoords = destinationCoords;

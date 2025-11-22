@@ -15,12 +15,29 @@ export const formatTitle = (slug) => {
     .join(" ");
 };
 
+export const getSeverityLabel = (severity) => {
+  if (severity >= 5) return "Critical Damage";
+  if (severity === 4) return "Severe Pothole";
+  if (severity === 3) return "Major Bump";
+  if (severity === 2) return "Moderate Bump";
+  return "Minor unevenness";
+};
+
+export const formatDate = (dateString) => {
+  if (!dateString) return "Unknown date";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 export const getSeverityColor = (severity) => {
   if (severity === 5) return "#ff0000";
-  if (severity === 4) return "#ff8c00";
-  if (severity === 3) return "#ffa500";
-  if (severity === 2) return "#ffd700";
-  return "#ffff00";
+  if (severity === 4) return "#ff8c00ff";
+  if (severity === 3) return "#c88a04ff";
+  if (severity === 2) return "#ffa500";
+  return "#ffd700";
 };
 
 export const formatPlaceName = (hit) => {

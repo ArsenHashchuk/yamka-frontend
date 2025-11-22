@@ -38,6 +38,40 @@
   font-weight: 600;
 }
 
+.potholePopup {
+  font-family: var(--font-sans);
+  min-width: 160px;
+  text-align: center;
+}
+
+.potholeTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+  display: block;
+  border-bottom: 2px solid #ef4444;
+  padding-bottom: 4px;
+}
+
+.potholeDetail {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.severityBadge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 .destinationIcon {
   background: transparent;
   border: none;
