@@ -141,21 +141,29 @@ export default function SearchPanel() {
       dispatch(setIsReRouting(false));
       dispatch(setCurrentInstructionIndex(0));
 
-      if (fromQuery === "My Current Location") {
+      const shouldStartNavigation = fromQuery === "My Current Location";
+
+      if (shouldStartNavigation) {
         dispatch(setIsNavigating(true));
       } else {
         dispatch(setIsNavigating(false));
       }
 
       handleClose();
+
+      if (
+        shouldStartNavigation &&
+        routeData.instructions &&
+        routeData.instructions.length > 0
+      ) {
+        const firstInstruction = translateInstruction(
+          routeData.instructions[0]
+        );
+        unlockSpeech(isMuted);
+        speak(firstInstruction, isMuted);
+      }
     } else {
       console.log("Could not find a route.");
-    }
-
-    if (routeData.instructions && routeData.instructions.length > 0) {
-      const firstInstruction = translateInstruction(routeData.instructions[0]);
-
-      speak(firstInstruction, isMuted);
     }
 
     setIsRouteLoading(false);

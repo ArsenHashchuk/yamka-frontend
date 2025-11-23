@@ -12,9 +12,8 @@ import { useEffect, useState, useMemo } from "react";
 import { toggleMute } from "@/src/lib/features/ui/uiSlice";
 
 export default function ArrivalInfo() {
-  const { route, units, isMuted, currentInstructionIndex } = useSelector(
-    (state) => state.ui
-  );
+  const { route, units, isMuted, currentInstructionIndex, isNavigating } =
+    useSelector((state) => state.ui);
   const dispatch = useDispatch();
 
   const [isClient, setIsClient] = useState(false);
@@ -93,7 +92,8 @@ export default function ArrivalInfo() {
     !isClient ||
     !route ||
     !route.instructions ||
-    remainingTimeInSeconds === null
+    remainingTimeInSeconds === null ||
+    !isNavigating
   ) {
     return null;
   }
