@@ -80,6 +80,8 @@
 .userPuckContainer {
   background: transparent;
   border: none;
+  transition: transform 1s linear;
+  z-index: 1000;
 }
 
 .userPuck {

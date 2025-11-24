@@ -37,6 +37,7 @@ import { distance } from "@turf/distance";
 import pointToLineDistance from "@turf/point-to-line-distance";
 import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
+// Custom Icons
 const userLocationIcon = L.divIcon({
   html: `<div class="${styles.userPuckPulse}"></div><div class="${styles.userPuck}"></div>`,
   className: styles.userPuckContainer,
@@ -55,23 +56,30 @@ const Map = ({ routeData }) => {
   const dispatch = useDispatch();
   const mapContainer = useRef(null);
   const map = useRef(null);
+
+  // Layer Refs
   const routeLayer = useRef(null);
   const mapLayer = useRef(null);
   const potholesLayer = useRef(null);
   const userPuckMarker = useRef(null);
-  const watchId = useRef(null);
   const destinationMarker = useRef(null);
 
+  // Logic Refs
+  const watchId = useRef(null);
   const lastSpokenIndex = useRef(-1);
   const arrivalSpoken = useRef(false);
+  const isPuckInitialized = useRef(false);
 
+  // Local State
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
-
-  const center = { lat: 49.842957, lng: 24.031111 };
-  const [zoom] = useState(14);
   const [hasCenteredOnUser, setHasCenteredOnUser] = useState(false);
 
+  // Constants
+  const center = { lat: 49.842957, lng: 24.031111 };
+  const [zoom] = useState(14);
+
+  // Redux State
   const mapLanguage = useSelector((state) => state.ui.locale);
   const mapStyle = useSelector((state) => state.ui.mapStyle);
   const showPotholes = useSelector((state) => state.ui.showPotholes);
@@ -91,7 +99,7 @@ const Map = ({ routeData }) => {
     error: potholeError,
   } = useGetPotholesQuery();
 
-  // Effect to initialize the map and start location watching
+  // Initialize Map & Geolocation
   useEffect(() => {
     if (map.current) return;
 
@@ -104,7 +112,6 @@ const Map = ({ routeData }) => {
       center: L.latLng(center.lat, center.lng),
       zoom: zoom,
       zoomControl: false,
-
       maxBounds: worldBounds,
       maxBoundsViscosity: 0.3,
       minZoom: 3,
@@ -119,27 +126,75 @@ const Map = ({ routeData }) => {
     mapLayer.current = mtLayer;
     potholesLayer.current = L.featureGroup().addTo(map.current);
 
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+        }
+      } catch (err) {
+        console.warn(`Wake Lock failed: ${err.name}, ${err.message}`);
+      }
+    };
+    requestWakeLock();
+
+    // Re-request lock if user tabs out and comes back
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && wakeLock === null) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Geolocation Logic
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          const initialUserLoc = { lat: latitude, lng: longitude };
 
-          dispatch(setUserLocation(initialUserLoc));
+          if (!userPuckMarker.current) {
+            userPuckMarker.current = L.marker([latitude, longitude], {
+              icon: userLocationIcon,
+              zIndexOffset: 1000,
+            }).addTo(map.current);
+            isPuckInitialized.current = true;
+          }
+
+          dispatch(setUserLocation({ lat: latitude, lng: longitude }));
 
           if (map.current && !hasCenteredOnUser) {
             map.current.setView([latitude, longitude], 15);
             setHasCenteredOnUser(true);
           }
         },
-        (error) => {
-          console.warn("Could not get initial user location:", error.message);
-        }
+        (error) => console.warn("Initial location error:", error.message),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
 
       watchId.current = navigator.geolocation.watchPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
+          const { latitude, longitude, heading } = position.coords;
+          const newLatLng = [latitude, longitude];
+
+          if (userPuckMarker.current) {
+            userPuckMarker.current.setLatLng(newLatLng);
+
+            // rotation logic
+            const iconElement = userPuckMarker.current.getElement();
+            if (iconElement && heading !== null && !isNaN(heading)) {
+              const puck = iconElement.querySelector(`.${styles.userPuck}`);
+              if (puck) {
+                puck.style.transform = `rotate(${heading}deg)`;
+              }
+            }
+          } else {
+            userPuckMarker.current = L.marker(newLatLng, {
+              icon: userLocationIcon,
+              zIndexOffset: 1000,
+            }).addTo(map.current);
+            isPuckInitialized.current = true;
+          }
+
           dispatch(setUserLocation({ lat: latitude, lng: longitude }));
         },
         (error) => {
@@ -147,7 +202,7 @@ const Map = ({ routeData }) => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 5000,
           maximumAge: 0,
         }
       );
@@ -155,7 +210,7 @@ const Map = ({ routeData }) => {
       console.error("Geolocation is not supported by this browser.");
     }
 
-    // Check for resume navigation on init load
+    // Check for resume navigation
     const appIsInNavigation =
       JSON.parse(localStorage.getItem("isNavigating")) === true;
     const appHasRoute = localStorage.getItem("currentRoute") !== null;
@@ -166,6 +221,8 @@ const Map = ({ routeData }) => {
 
     return () => {
       if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
+      if (wakeLock) wakeLock.release();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [
     center.lng,
@@ -177,20 +234,20 @@ const Map = ({ routeData }) => {
     hasCenteredOnUser,
   ]);
 
-  // Effect to update map language
+  // Map Language
   useEffect(() => {
     if (!mapLayer.current) return;
     mapLayer.current.setLanguage(mapLanguage);
   }, [mapLanguage]);
 
-  // Effect to update map style
+  // Style Updates
   useEffect(() => {
     if (!mapLayer.current) return;
     const newStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
     mapLayer.current.setStyle(newStyleUrl);
   }, [mapStyle]);
 
-  // Effect for drawing the route
+  // Route Drawing Logic
   useEffect(() => {
     if (!map.current) return;
     if (routeLayer.current) {
@@ -248,23 +305,21 @@ const Map = ({ routeData }) => {
         const coords = routeData.points.coordinates;
         const destLngLat =
           routeData.points.type === "LineString"
-            ? coords[coords.length - 1] // [lng, lat]
-            : coords; // [lng, lat]
+            ? coords[coords.length - 1]
+            : coords;
 
         destinationMarker.current = L.marker([destLngLat[1], destLngLat[0]], {
-          // [lat, lng]
           icon: destinationIcon,
         }).addTo(map.current);
       } catch (e) {
         console.error("Could not create destination marker:", e);
       }
 
-      // if user enter pointA and pointB as the same addresses, we just setView to that coords and GH returns a point
       if (!hasSufficientDistance) {
         map.current.setView(
           [
-            routeData.points.coordinates[0][1], // lat
-            routeData.points.coordinates[0][0], // lng
+            routeData.points.coordinates[0][1],
+            routeData.points.coordinates[0][0],
           ],
           18
         );
@@ -279,7 +334,7 @@ const Map = ({ routeData }) => {
     }
   }, [routeData, isNavigating, showResumeModal, dispatch, units]);
 
-  // Effect to draw/filter potholes
+  // Pothole Rendering
   useEffect(() => {
     if (!map.current || !potholesLayer.current || isLoadingPotholes) return;
 
@@ -339,6 +394,7 @@ const Map = ({ routeData }) => {
     }
   }, [potholes, showPotholes, severityFilter, isLoadingPotholes, potholeError]);
 
+  // Re-routing Handler
   const handleReroute = useCallback(async () => {
     dispatch(setIsReRouting(true));
 
@@ -367,31 +423,15 @@ const Map = ({ routeData }) => {
     }, 3000);
   }, [dispatch, userLocation, destinationCoords, mapLanguage]);
 
-  // Effect to draw puck and handle navigation
+  // Navigation & Follow Logic
   useEffect(() => {
     if (!map.current) return;
 
-    if (userLocation) {
-      const userLatLng = [userLocation.lat, userLocation.lng];
-      if (!userPuckMarker.current) {
-        userPuckMarker.current = L.marker(userLatLng, {
-          icon: userLocationIcon,
-          pane: "markerPane",
-        }).addTo(map.current);
-      } else {
-        userPuckMarker.current.setLatLng(userLatLng);
-      }
-    } else {
-      if (userPuckMarker.current) {
-        userPuckMarker.current.remove();
-        userPuckMarker.current = null;
-      }
-    }
-
-    // Handle navigation logic (follow, re-route, and arrival)
     if (isNavigating && userLocation && !showResumeModal) {
-      // Follow user
-      map.current.setView([userLocation.lat, userLocation.lng], 17);
+      map.current.setView([userLocation.lat, userLocation.lng], 17, {
+        animate: true,
+        duration: 1,
+      });
 
       if (
         routeData &&
@@ -506,7 +546,9 @@ const Map = ({ routeData }) => {
   // Handler for the "Find My Location" button
   const handleFindMe = () => {
     if (userLocation && map.current) {
-      map.current.setView([userLocation.lat, userLocation.lng], 16);
+      map.current.setView([userLocation.lat, userLocation.lng], 16, {
+        animate: true,
+      });
     } else {
       console.error("Cannot find location. User may have denied permission.");
     }
