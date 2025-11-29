@@ -10,16 +10,21 @@ import {
 } from "@/src/lib/utils/utils";
 import { useEffect, useState, useMemo } from "react";
 import { toggleMute } from "@/src/lib/features/ui/uiSlice";
+import turfDistance from "@turf/distance";
 
 export default function ArrivalInfo() {
-  const { route, units, isMuted, currentInstructionIndex, isNavigating } =
-    useSelector((state) => state.ui);
+  const {
+    route,
+    units,
+    isMuted,
+    currentInstructionIndex,
+    isNavigating,
+    userLocation,
+  } = useSelector((state) => state.ui);
   const dispatch = useDispatch();
 
   const [isClient, setIsClient] = useState(false);
-
   const [eta, setETA] = useState("...");
-
   const [remainingTimeInSeconds, setRemainingTimeInSeconds] = useState(null);
   const [remainingDistanceInMeters, setRemainingDistanceInMeters] =
     useState(null);
@@ -28,7 +33,7 @@ export default function ArrivalInfo() {
     setIsClient(true);
   }, []);
 
-  // effect to re-sync on progress
+  // Effect to re-sync on progress
   useEffect(() => {
     if (
       !isClient ||
@@ -39,39 +44,53 @@ export default function ArrivalInfo() {
       return;
     }
 
-    let newRemainingTime = 0;
-    let newRemainingDistance = 0;
+    let distSum = 0;
+    let timeSum = 0;
 
-    for (let i = currentInstructionIndex; i < route.instructions.length; i++) {
-      newRemainingTime += route.instructions[i].time / 1000 || 0;
-      newRemainingDistance += route.instructions[i].distance || 0;
+    if (
+      userLocation &&
+      route.instructions[currentInstructionIndex] &&
+      typeof turfDistance === "function"
+    ) {
+      const nextStep = route.instructions[currentInstructionIndex];
+      if (nextStep.points && nextStep.points.length > 0) {
+        const userPt = [userLocation.lng, userLocation.lat];
+        const nextPt = nextStep.points[0];
+        try {
+          const distToNext = turfDistance(userPt, nextPt, { units: "meters" });
+          distSum += distToNext;
+        } catch (e) {
+          console.warn("Turf distance calculation failed:", e);
+        }
+      }
     }
 
-    setRemainingTimeInSeconds(Math.floor(newRemainingTime));
-    setRemainingDistanceInMeters(newRemainingDistance);
-  }, [route, currentInstructionIndex, isClient]);
+    for (let i = currentInstructionIndex; i < route.instructions.length; i++) {
+      timeSum += route.instructions[i].time / 1000 || 0;
+      distSum += route.instructions[i].distance || 0;
+    }
 
-  // effect to recalculate the eta
+    setRemainingTimeInSeconds(Math.floor(timeSum));
+    setRemainingDistanceInMeters(distSum);
+  }, [route, currentInstructionIndex, isClient, userLocation]);
+
+  // Effect to recalculate the ETA
   useEffect(() => {
     if (remainingTimeInSeconds === null) return;
 
     const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
-
     let timerId;
 
     const updateOnMinuteChange = () => {
       setETA(calculateETA(remainingMinutes));
-
       const now = new Date();
       const millisecondsPastMinute =
         now.getSeconds() * 1000 + now.getMilliseconds();
       const delayUntilNextMinute = 60000 - millisecondsPastMinute + 50;
-
       timerId = setTimeout(updateOnMinuteChange, delayUntilNextMinute);
     };
 
     updateOnMinuteChange();
-
     return () => clearTimeout(timerId);
   }, [remainingTimeInSeconds]);
 
@@ -79,9 +98,7 @@ export default function ArrivalInfo() {
     if (remainingTimeInSeconds === null || remainingDistanceInMeters === null) {
       return { duration: "...", distance: "..." };
     }
-
     const remainingTimeInMs = remainingTimeInSeconds * 1000;
-
     return {
       duration: formatTripDuration(remainingTimeInMs),
       distance: formatTripDistance(remainingDistanceInMeters, units),
@@ -103,9 +120,7 @@ export default function ArrivalInfo() {
       <div className={styles.etaAndMuteWrapper}>
         <span className={styles.etaText}>{eta}</span>
         <button
-          onClick={() => {
-            dispatch(toggleMute());
-          }}
+          onClick={() => dispatch(toggleMute())}
           className={styles.iconButton}
         >
           {isMuted ? <VolumeOff size={18} /> : <Volume2 size={18} />}

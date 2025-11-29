@@ -18,7 +18,7 @@
 }
 
 .articleListItem {
-  border: 1px solid #333;
+  border: none;
   border-radius: 8px;
   margin-bottom: 15px;
   transition: all 0.2s ease-in-out;

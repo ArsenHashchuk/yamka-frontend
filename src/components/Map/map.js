@@ -4,9 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MaptilerLayer } from "@maptiler/leaflet-maptilersdk";
-
 import "@maptiler/sdk/dist/maptiler-sdk.css";
-
 import styles from "./map.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { MAP_STYLES } from "./map-styles";
@@ -33,16 +31,16 @@ import ArrivalModal from "./arrival-modal";
 import ResumeNavigationModal from "./resume-navigation-modal";
 import { Locate, Minus, Plus, RouteOff } from "lucide-react";
 
-import { distance } from "@turf/distance";
+import distance from "@turf/distance";
 import pointToLineDistance from "@turf/point-to-line-distance";
 import { translateInstruction } from "@/src/lib/utils/instructionTranslator";
 
-// Custom Icons
+// Custom icons
 const userLocationIcon = L.divIcon({
   html: `<div class="${styles.userPuckPulse}"></div><div class="${styles.userPuck}"></div>`,
   className: styles.userPuckContainer,
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
+  iconSize: [0, 0],
+  iconAnchor: [0, 0],
 });
 
 const destinationIcon = L.divIcon({
@@ -74,6 +72,8 @@ const Map = ({ routeData }) => {
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isAutoSnap, setIsAutoSnap] = useState(true);
+  const isAutoSnapRef = useRef(true);
 
   // Constants
   const center = { lat: 49.842957, lng: 24.031111 };
@@ -99,6 +99,10 @@ const Map = ({ routeData }) => {
     error: potholeError,
   } = useGetPotholesQuery();
 
+  useEffect(() => {
+    isAutoSnapRef.current = isAutoSnap;
+  }, [isAutoSnap]);
+
   // Helper function to update puck and Redux
   const updateUserPuck = useCallback(
     (latitude, longitude, heading) => {
@@ -107,16 +111,15 @@ const Map = ({ routeData }) => {
       if (userPuckMarker.current) {
         userPuckMarker.current.setLatLng(newLatLng);
 
-        // Rotation logic
+        // user puck rotation  logic
         const iconElement = userPuckMarker.current.getElement();
         if (iconElement && heading !== null && !isNaN(heading)) {
           const puck = iconElement.querySelector(`.${styles.userPuck}`);
           if (puck) {
-            puck.style.transform = `rotate(${heading}deg)`;
+            puck.style.transform = `translate(-50%, -50%) rotate(${heading}deg)`;
           }
         }
-      } else {
-        // Create marker if it doesn't exist
+      } else if (map.current) {
         userPuckMarker.current = L.marker(newLatLng, {
           icon: userLocationIcon,
           zIndexOffset: 1000,
@@ -128,7 +131,7 @@ const Map = ({ routeData }) => {
     [dispatch]
   );
 
-  // Initialize Map & Geolocation
+  // map init
   useEffect(() => {
     if (map.current) return;
 
@@ -144,6 +147,10 @@ const Map = ({ routeData }) => {
       maxBounds: worldBounds,
       maxBoundsViscosity: 0.3,
       minZoom: 3,
+    });
+
+    map.current.on("dragstart", () => {
+      setIsAutoSnap(false);
     });
 
     const initialStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
@@ -163,7 +170,6 @@ const Map = ({ routeData }) => {
       try {
         if ("wakeLock" in navigator) {
           wakeLock = await navigator.wakeLock.request("screen");
-
           wakeLock.addEventListener("release", () => {
             wakeLock = null;
           });
@@ -174,15 +180,8 @@ const Map = ({ routeData }) => {
     };
     requestWakeLock();
 
-    // Re-request lock if user tabs out and comes back
     const handleVisibilityChange = () => {
-      if (wakeLock !== null && document.visibilityState === "visible") {
-        requestWakeLock();
-      }
-
-      if (document.visibilityState === "visible") {
-        requestWakeLock();
-      }
+      if (document.visibilityState === "visible") requestWakeLock();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -190,9 +189,10 @@ const Map = ({ routeData }) => {
       if (wakeLock) wakeLock.release();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [center.lng, center.lat, zoom, mapLanguage, mapStyle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Geolocation Logic
+  // geolocation api
   useEffect(() => {
     if (!isMapReady || !map.current) return;
 
@@ -215,14 +215,19 @@ const Map = ({ routeData }) => {
         (position) => {
           const { latitude, longitude, heading } = position.coords;
           updateUserPuck(latitude, longitude, heading);
+
+          if (isAutoSnapRef.current && map.current) {
+            map.current.panTo([latitude, longitude], {
+              animate: true,
+              duration: 0.5,
+              easeLinearity: 0.5,
+            });
+          }
         },
         (error) => {
           console.error("Error watching position:", error.message);
         },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-        }
+        { enableHighAccuracy: true, maximumAge: 0 }
       );
     } else {
       console.error("Geolocation is not supported by this browser.");
@@ -246,27 +251,34 @@ const Map = ({ routeData }) => {
     }
   }, []);
 
-  // Map Language
+  // re-enable snap on nav start
+  useEffect(() => {
+    if (isNavigating) {
+      setIsAutoSnap(true);
+    }
+  }, [isNavigating]);
+
+  // map language update
   useEffect(() => {
     if (!mapLayer.current) return;
     mapLayer.current.setLanguage(mapLanguage);
   }, [mapLanguage]);
 
-  // Style Updates
+  // map styles update
   useEffect(() => {
     if (!mapLayer.current) return;
     const newStyleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.default;
     mapLayer.current.setStyle(newStyleUrl);
   }, [mapStyle]);
 
-  // Route Drawing Logic
+  // route drawing logic
   useEffect(() => {
     if (!map.current) return;
+
     if (routeLayer.current) {
       map.current.removeLayer(routeLayer.current);
       routeLayer.current = null;
     }
-
     if (destinationMarker.current) {
       map.current.removeLayer(destinationMarker.current);
       destinationMarker.current = null;
@@ -303,15 +315,9 @@ const Map = ({ routeData }) => {
         </div>
       `;
 
-      newRoute.bindPopup(popupContent, {
-        closeButton: false,
-      });
+      newRoute.bindPopup(popupContent, { closeButton: false });
 
-      if (!showResumeModal) {
-        setShowArrivalModal(false);
-      }
-
-      const hasSufficientDistance = routeData.distance > 10;
+      if (!showResumeModal) setShowArrivalModal(false);
 
       try {
         const coords = routeData.points.coordinates;
@@ -319,7 +325,6 @@ const Map = ({ routeData }) => {
           routeData.points.type === "LineString"
             ? coords[coords.length - 1]
             : coords;
-
         destinationMarker.current = L.marker([destLngLat[1], destLngLat[0]], {
           icon: destinationIcon,
         }).addTo(map.current);
@@ -327,7 +332,10 @@ const Map = ({ routeData }) => {
         console.error("Could not create destination marker:", e);
       }
 
-      if (!hasSufficientDistance) {
+      const hasSufficientDistance = routeData.distance > 10;
+      if (!isNavigating && hasSufficientDistance) {
+        map.current.fitBounds(newRoute.getBounds(), { padding: [50, 50] });
+      } else if (!hasSufficientDistance) {
         map.current.setView(
           [
             routeData.points.coordinates[0][1],
@@ -336,32 +344,34 @@ const Map = ({ routeData }) => {
           18
         );
       }
-      if (!isNavigating && hasSufficientDistance) {
-        map.current.fitBounds(newRoute.getBounds());
+    }
+    if (!routeData) setShowArrivalModal(false);
+  }, [routeData, isNavigating, showResumeModal, units]);
+
+  // snap logic for nav
+  useEffect(() => {
+    if (isNavigating && userLocation && isAutoSnap && map.current) {
+      if (map.current.getZoom() < 17) {
+        map.current.setView([userLocation.lat, userLocation.lng], 17);
+      } else {
+        map.current.panTo([userLocation.lat, userLocation.lng], {
+          animate: true,
+        });
       }
     }
+  }, [isNavigating, isAutoSnap, userLocation]);
 
-    if (!routeData) {
-      setShowArrivalModal(false);
-    }
-  }, [routeData, isNavigating, showResumeModal, dispatch, units]);
-
-  // Pothole Rendering
+  // pothole rendering
   useEffect(() => {
     if (!map.current || !potholesLayer.current || isLoadingPotholes) return;
-
     potholesLayer.current.clearLayers();
 
-    if (potholeError) {
-      console.error("Failed to load potholes:", potholeError);
-      return;
-    }
+    if (potholeError) return;
 
     if (showPotholes && potholes) {
       const filteredPotholes = potholes.filter(
         (pothole) => pothole.severity >= severityFilter
       );
-
       filteredPotholes.forEach((pothole) => {
         const [lng, lat] = pothole.coordinates;
         const severityColor = getSeverityColor(pothole.severity);
@@ -371,25 +381,16 @@ const Map = ({ routeData }) => {
         const popupContent = `
           <div class="${styles.potholePopup}">
             <span class="${styles.potholeTitle}">Pothole Alert</span>
-            
             <div class="${styles.potholeDetail}">
               <strong>Status:</strong>
-              <span class="${styles.severityBadge}" style="background-color: ${severityColor}">
-                ${severityText}
-              </span>
+              <span class="${styles.severityBadge}" style="background-color: ${severityColor}">${severityText}</span>
             </div>
-
             <div class="${styles.potholeDetail}">
               <strong>Detected:</strong>
               <span>${dateText}</span>
             </div>
-            
-            <div style="font-size: 10px; color: #9ca3af; margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 4px;">
-              ID: #${pothole.id}
-            </div>
           </div>
         `;
-
         L.circleMarker([lat, lng], {
           radius: 6,
           fillColor: severityColor,
@@ -398,91 +399,66 @@ const Map = ({ routeData }) => {
           opacity: 1,
           fillOpacity: 0.8,
         })
-          .bindPopup(popupContent, {
-            closeButton: false,
-          })
+          .bindPopup(popupContent, { closeButton: false })
           .addTo(potholesLayer.current);
       });
     }
   }, [potholes, showPotholes, severityFilter, isLoadingPotholes, potholeError]);
 
-  // Re-routing Handler
   const handleReroute = useCallback(async () => {
     dispatch(setIsReRouting(true));
-
     const fromCoords = [userLocation.lat, userLocation.lng];
     const toCoords = destinationCoords;
 
-    if (!fromCoords || !toCoords) {
-      console.error("Missing coords for re-route.");
-      dispatch(setIsReRouting(false));
-      return;
+    if (fromCoords && toCoords) {
+      const newRouteData = await getRoute(fromCoords, toCoords, mapLanguage);
+      if (newRouteData) {
+        dispatch(setRoute(newRouteData));
+        dispatch(setCurrentInstructionIndex(0));
+        lastSpokenIndex.current = -1;
+        arrivalSpoken.current = false;
+      }
     }
-
-    const newRouteData = await getRoute(fromCoords, toCoords, mapLanguage);
-
-    if (newRouteData) {
-      dispatch(setRoute(newRouteData));
-      dispatch(setCurrentInstructionIndex(0));
-      lastSpokenIndex.current = -1;
-      arrivalSpoken.current = false;
-    } else {
-      console.error("Failed to fetch new route.");
-    }
-
     setTimeout(() => {
       dispatch(setIsReRouting(false));
     }, 3000);
   }, [dispatch, userLocation, destinationCoords, mapLanguage]);
 
-  // Navigation & Follow Logic
+  // navigation logic
   useEffect(() => {
     if (!map.current) return;
-
     if (isNavigating && userLocation && !showResumeModal) {
-      map.current.setView([userLocation.lat, userLocation.lng], 17, {
-        animate: true,
-        duration: 1,
-      });
-
       if (
         routeData &&
         routeData.points &&
         routeData.points.type === "LineString"
       ) {
         if (
-          typeof distance === "undefined" ||
-          typeof pointToLineDistance === "undefined"
+          typeof distance !== "function" ||
+          typeof pointToLineDistance !== "function"
         ) {
-          console.error("Turf.js functions are not loaded!");
+          console.warn("Turf functions not ready");
           return;
         }
 
-        // ReRouting logic
         if (!isReRouting) {
           const userPoint = [userLocation.lng, userLocation.lat];
           const routeLine = routeData.points;
-
           const distanceToRoute = pointToLineDistance(userPoint, routeLine, {
             units: "meters",
           });
 
-          const rerouteTolerance = 50; // 50 meters
-
-          if (distanceToRoute > rerouteTolerance) {
+          if (distanceToRoute > 30) {
             handleReroute();
             return;
           }
 
-          // Voice logic
           const instructions = routeData.instructions;
           const nextInstruction = instructions[currentInstructionIndex];
 
           if (nextInstruction) {
-            const userPoint = [userLocation.lng, userLocation.lat];
             const isFirstInstruction = currentInstructionIndex === 0;
 
-            // Check for "Arrive" sign
             if (nextInstruction.sign === 4) {
               const routeCoords = routeData.points.coordinates;
               const destination = routeCoords[routeCoords.length - 1];
@@ -503,6 +479,7 @@ const Map = ({ routeData }) => {
                     setShowArrivalModal(true);
                     dispatch(setIsNavigating(false));
                     dispatch(setCurrentInstructionIndex(0));
+                    setIsAutoSnap(false);
                   }
                 );
               }
@@ -510,13 +487,13 @@ const Map = ({ routeData }) => {
               nextInstruction.points &&
               nextInstruction.points.length > 0
             ) {
-              const maneuverPoint = nextInstruction.points[0]; // [lng, lat]
+              const maneuverPoint = nextInstruction.points[0];
               const distanceToManeuver = distance(userPoint, maneuverPoint, {
                 units: "meters",
               });
 
               const speechTriggerDistance = 100;
-              const advanceInstructionDistance = 25;
+              const advanceInstructionDistance = 35;
               const englishInstruction = translateInstruction(nextInstruction);
 
               const shouldSpeak =
@@ -555,25 +532,22 @@ const Map = ({ routeData }) => {
     mapLanguage,
   ]);
 
-  // Handler for the "Find My Location" button
   const handleFindMe = () => {
+    setIsAutoSnap(true);
     if (userLocation && map.current) {
-      map.current.setView([userLocation.lat, userLocation.lng], 16, {
+      map.current.flyTo([userLocation.lat, userLocation.lng], 17, {
         animate: true,
+        duration: 1.5,
       });
-    } else {
-      console.error("Cannot find location. User may have denied permission.");
     }
   };
 
-  // Handler for the "Clear Route" button
   const handleClearRoute = () => {
     dispatch(setRoute(null));
     dispatch(setIsNavigating(false));
     dispatch(setDestinationCoords(null));
     dispatch(setCurrentInstructionIndex(0));
-
-    // Reset speech flags
+    setIsAutoSnap(false);
     lastSpokenIndex.current = -1;
     arrivalSpoken.current = false;
   };
@@ -607,7 +581,13 @@ const Map = ({ routeData }) => {
       >
         <Minus size={20} />
       </button>
-      <button className={styles.locateButton} onClick={handleFindMe}>
+
+      <button
+        className={`${styles.locateButton} ${
+          isNavigating && isAutoSnap ? styles.recenterButton : ""
+        }`}
+        onClick={handleFindMe}
+      >
         <Locate size={20} />
       </button>
     </div>
