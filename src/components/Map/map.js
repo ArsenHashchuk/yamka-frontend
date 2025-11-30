@@ -545,9 +545,12 @@ const Map = ({ routeData }) => {
   const handleFindMe = () => {
     setIsAutoSnap(true);
     if (userLocation && map.current) {
-      map.current.flyTo([userLocation.lat, userLocation.lng], 17, {
+      map.current.setView([userLocation.lat, userLocation.lng], 17, {
         animate: true,
-        duration: 1.5,
+        pan: {
+          duration: 1.5,
+          easeLinearity: 0.3,
+        },
       });
     }
   };
